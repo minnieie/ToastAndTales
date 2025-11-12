@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "458270214755",
+    "firebase_url": "https://toastandtales-default-rtdb.asia-southeast1.firebasedatabase.app",
+    "project_id": "toastandtales",
+    "storage_bucket": "toastandtales.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:458270214755:android:b9c5f36cb84ae4bb648656",
+        "android_client_info": {
+          "package_name": "com.DDAxITD.ToastAndTales"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCr10f-73sKT8FC0qfEfrDjZUY8OwDzcvM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
