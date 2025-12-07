@@ -4915,7 +4915,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ImageTracker
   trackedImageManager: {fileID: 1290408836}
   placeablePrefabs:
-  - {fileID: 8103315520920913166, guid: 9a7324b06cbddd5489d8c0e32da4b9b2, type: 3}
+  - {fileID: 1937107817685762190, guid: 9ef869ac493acf54098da3b1977ea8c0, type: 3}
   - {fileID: 1371822133766976658, guid: b5098338259164f4fa2678880225a1e1, type: 3}
 --- !u!114 &1290408836
 MonoBehaviour:
