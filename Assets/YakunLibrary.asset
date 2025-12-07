@@ -23,7 +23,37 @@ MonoBehaviour:
     m_SerializedTextureGuid:
       m_GuidLow: 528153963704022431
       m_GuidHigh: 7984392998428356040
-    m_Size: {x: 0.15, y: 0.1}
+    m_Size: {x: 0.15, y: 0.15}
     m_SpecifySize: 1
-    m_Name: coffee
+    m_Name: cup
+    m_Texture: {fileID: 0}
+  - m_SerializedGuid:
+      m_GuidLow: 5181689565898079966
+      m_GuidHigh: 11977135429794389916
+    m_SerializedTextureGuid:
+      m_GuidLow: 3099746720707494381
+      m_GuidHigh: 14260402312655566331
+    m_Size: {x: 0.15, y: 0.15}
+    m_SpecifySize: 1
+    m_Name: fullset
+    m_Texture: {fileID: 0}
+  - m_SerializedGuid:
+      m_GuidLow: 5427598300436454653
+      m_GuidHigh: 15398734962887728783
+    m_SerializedTextureGuid:
+      m_GuidLow: 14435390416303214941
+      m_GuidHigh: 16921290431350530360
+    m_Size: {x: 0.15, y: 0.15}
+    m_SpecifySize: 1
+    m_Name: toast
+    m_Texture: {fileID: 0}
+  - m_SerializedGuid:
+      m_GuidLow: 5625938554655719476
+      m_GuidHigh: 277573214235275688
+    m_SerializedTextureGuid:
+      m_GuidLow: 11017198745301833850
+      m_GuidHigh: 11521727283835116313
+    m_Size: {x: 0.15, y: 0.22500001}
+    m_SpecifySize: 1
+    m_Name: kettle
     m_Texture: {fileID: 0}
