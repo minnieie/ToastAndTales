@@ -9,34 +9,50 @@ public class CupPourTrigger : MonoBehaviour
     [Header("Kettle")]
     public KettlePour kettle;
 
+    [Header("Cup UI Manager")]
+    public CupUIManager uiManager;
+
+    [Header("Main UI Manager (Progress UI)")]
+    public UIManager progressUI;  
+
+    private bool stepCompleted = false;
+
+    private void Awake()
+    {
+        if (progressUI == null)
+            progressUI = FindObjectOfType<UIManager>();
+    }
+
     private void OnTriggerEnter(Collider other)
     {
-        // Check if the collider is the kettle
-        if (other.CompareTag("Kettle"))
+        if (other.CompareTag("Kettle") && !stepCompleted)
         {
-            // Start the kettle pouring
+            stepCompleted = true;  // prevent double counting
+
             if (kettle != null)
                 kettle.StartPouring();
 
-            // Swap cup models
             if (emptyCupModel != null && filledCupModel != null)
             {
                 emptyCupModel.SetActive(false);
                 filledCupModel.SetActive(true);
+
+                if (uiManager != null)
+                    uiManager.ShowCongrats();
+
+                if (progressUI != null)
+                    progressUI.CompleteStep();  // now increments only once
             }
         }
-    }
+}
 
     private void OnTriggerExit(Collider other)
     {
-        // Check if the collider leaving is the kettle
         if (other.CompareTag("Kettle"))
         {
-            // Stop the kettle pouring
             if (kettle != null)
                 kettle.StopPouring();
 
-            // Swap cup models back
             if (emptyCupModel != null && filledCupModel != null)
             {
                 emptyCupModel.SetActive(true);
@@ -45,3 +61,4 @@ public class CupPourTrigger : MonoBehaviour
         }
     }
 }
+
