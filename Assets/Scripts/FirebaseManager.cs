@@ -19,6 +19,8 @@ public class SimpleAuthManager : MonoBehaviour
     [Header("Panels")]
     public GameObject loginPanel;
     public GameObject signupPanel;
+    public GameObject startPanel;
+    public GameObject historyPanel;
 
     [Header("Login UI")]
     public TMP_InputField loginEmail;
@@ -37,6 +39,12 @@ public class SimpleAuthManager : MonoBehaviour
 
     private bool isFirebaseReady = false;
 
+    [Header("Start Panel UI")]      // <--- ADD THIS SECTION
+    public Button storyButton;      // The button that opens history
+
+    [Header("History Panel UI")]    // <--- ADD THIS SECTION
+    public Button historyBackButton;// The button that goes back
+
     // Initialize Firebase and set up UI
     private void Start()
     {
@@ -47,6 +55,14 @@ public class SimpleAuthManager : MonoBehaviour
         signupButton.onClick.AddListener(SignUp);
         gotoSignupButton.onClick.AddListener(() => ShowPanel(signupPanel));
         gotoLoginButton.onClick.AddListener(() => ShowPanel(loginPanel));
+
+        ShowPanel(loginPanel);
+
+        if (storyButton != null)
+            storyButton.onClick.AddListener(() => ShowPanel(historyPanel));
+
+        if (historyBackButton != null)
+            historyBackButton.onClick.AddListener(() => ShowPanel(startPanel));
 
         ShowPanel(loginPanel);
     }
@@ -74,6 +90,8 @@ public class SimpleAuthManager : MonoBehaviour
     {
         loginPanel.SetActive(false);
         signupPanel.SetActive(false);
+        startPanel.SetActive(false);
+        if(historyPanel) historyPanel.SetActive(false);
         panel.SetActive(true);
     }
 
@@ -81,7 +99,7 @@ public class SimpleAuthManager : MonoBehaviour
     public async void SignUp()
     {   
         // Check if Firebase is initialized
-        if (!isFirebaseReady) { UpdateStatus(signupStatusText, "Firebase not ready", Color.red); return; }
+        if (!isFirebaseReady) { UpdateStatus(signupStatusText, "Firebase not ready", Color.firebrick); return; }
 
         string email = signupEmail.text;
         string password = signupPassword.text;
@@ -89,13 +107,13 @@ public class SimpleAuthManager : MonoBehaviour
 
         if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(password))
         {
-            UpdateStatus(signupStatusText, "Enter email and password", Color.red);
+            UpdateStatus(signupStatusText, "Enter email and password", Color.firebrick);
             return;
         }
 
         if (password != confirmPassword)
         {
-            UpdateStatus(signupStatusText, "Passwords do not match", Color.red);
+            UpdateStatus(signupStatusText, "Passwords do not match", Color.firebrick);
             return;
         }
 
@@ -103,15 +121,15 @@ public class SimpleAuthManager : MonoBehaviour
         {
             var result = await auth.CreateUserWithEmailAndPasswordAsync(email, password);
             user = result.User;
-            UpdateStatus(signupStatusText, "Account created!", Color.green);
+            UpdateStatus(signupStatusText, "Account created!", Color.darkGreen);
             ShowPanel(loginPanel); // Go back to login panel
         }
         catch (FirebaseException e)
         {
             if ((AuthError)e.ErrorCode == AuthError.EmailAlreadyInUse)
-                UpdateStatus(signupStatusText, "Email already registered", Color.red);
+                UpdateStatus(signupStatusText, "Email already registered", Color.firebrick);
             else
-                UpdateStatus(signupStatusText, $"Signup failed: {e.Message}", Color.red);
+                UpdateStatus(signupStatusText, $"Signup failed: {e.Message}", Color.firebrick);
         }
     }
 
@@ -119,7 +137,7 @@ public class SimpleAuthManager : MonoBehaviour
     public async void Login()
     {   
         // Check if Firebase is initialized
-        if (!isFirebaseReady) { UpdateStatus(loginStatusText, "Firebase not ready", Color.red); return; }
+        if (!isFirebaseReady) { UpdateStatus(loginStatusText, "Firebase not ready", Color.firebrick); return; }
 
         string email = loginEmail.text;
         string password = loginPassword.text;
@@ -128,7 +146,7 @@ public class SimpleAuthManager : MonoBehaviour
 
         if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(password))
         {
-            UpdateStatus(loginStatusText, "Enter email and password", Color.red);
+            UpdateStatus(loginStatusText, "Enter email and password", Color.firebrick);
             return;
         }
 
@@ -136,11 +154,12 @@ public class SimpleAuthManager : MonoBehaviour
         {
             var result = await auth.SignInWithEmailAndPasswordAsync(email, password);
             user = result.User;
-            UpdateStatus(loginStatusText, "Login successful!", Color.green);
+            UpdateStatus(loginStatusText, "Login successful!", Color.darkGreen);
+            ShowPanel(startPanel);
         }
         catch (Exception e)
         {
-            UpdateStatus(loginStatusText, $"Login failed", Color.red);
+            UpdateStatus(loginStatusText, $"Login failed", Color.firebrick);
         }
     }
 
