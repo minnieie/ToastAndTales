@@ -12,7 +12,7 @@ public class CupUIManager : MonoBehaviour
     private void Start()
     {
         if (statusText != null)
-            statusText.text = "Nice, Please scan the Kettle to start pouring.";
+            statusText.text = "Nice, Please scan the kettle to start pouring.";
 
         // Hide history button and panel at start
         if (historyButton != null)
