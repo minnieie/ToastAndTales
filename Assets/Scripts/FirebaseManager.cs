@@ -21,6 +21,7 @@ public class SimpleAuthManager : MonoBehaviour
     public GameObject signupPanel;
     public GameObject startPanel;
     public GameObject historyPanel;
+    public GameObject menuPanel;
 
     [Header("Login UI")]
     public TMP_InputField loginEmail;
@@ -39,11 +40,15 @@ public class SimpleAuthManager : MonoBehaviour
 
     private bool isFirebaseReady = false;
 
-    [Header("Start Panel UI")]      // <--- ADD THIS SECTION
-    public Button storyButton;      // The button that opens history
+    [Header("Start Panel UI")]
+    public Button storyButton;
+    public Button startJourneyButton;
 
-    [Header("History Panel UI")]    // <--- ADD THIS SECTION
-    public Button historyBackButton;// The button that goes back
+    [Header("History Panel UI")]
+    public Button historyBackButton;
+
+    [Header("Menu Panel UI")]        
+    public Button menuBackButton;    
 
     // Initialize Firebase and set up UI
     private void Start()
@@ -63,6 +68,12 @@ public class SimpleAuthManager : MonoBehaviour
 
         if (historyBackButton != null)
             historyBackButton.onClick.AddListener(() => ShowPanel(startPanel));
+
+        if (startJourneyButton != null)
+            startJourneyButton.onClick.AddListener(() => menuPanel.SetActive(true)); // Just show popup, keep StartPanel open
+        
+        if (menuBackButton != null)
+            menuBackButton.onClick.AddListener(() => menuPanel.SetActive(false)); // Just hide popup
 
         ShowPanel(loginPanel);
     }
@@ -91,13 +102,14 @@ public class SimpleAuthManager : MonoBehaviour
         loginPanel.SetActive(false);
         signupPanel.SetActive(false);
         startPanel.SetActive(false);
-        if(historyPanel) historyPanel.SetActive(false);
+        if (historyPanel) historyPanel.SetActive(false);
+        if(menuPanel) menuPanel.SetActive(false);
         panel.SetActive(true);
     }
 
     /// Handle user signup
     public async void SignUp()
-    {   
+    {
         // Check if Firebase is initialized
         if (!isFirebaseReady) { UpdateStatus(signupStatusText, "Firebase not ready", Color.firebrick); return; }
 
@@ -135,7 +147,7 @@ public class SimpleAuthManager : MonoBehaviour
 
     /// Handle user login
     public async void Login()
-    {   
+    {
         // Check if Firebase is initialized
         if (!isFirebaseReady) { UpdateStatus(loginStatusText, "Firebase not ready", Color.firebrick); return; }
 
@@ -165,7 +177,7 @@ public class SimpleAuthManager : MonoBehaviour
 
     // Update status text with message and color
     void UpdateStatus(TextMeshProUGUI textElement, string message, Color color)
-    {   
+    {
         if (textElement != null)
         {
             textElement.text = message;
