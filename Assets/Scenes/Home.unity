@@ -5890,7 +5890,7 @@ MonoBehaviour:
   signupStatusText: {fileID: 1716686699}
   storyButton: {fileID: 1007611387}
   startJourneyButton: {fileID: 1662730686}
-  logoutButton: {fileID: 508327702}
+  logoutButton: {fileID: 1474294030}
   welcomeText: {fileID: 302170309}
   historyBackButton: {fileID: 1075061665}
   menuBackButton: {fileID: 775192395}
@@ -5898,7 +5898,7 @@ MonoBehaviour:
   - button: {fileID: 772727225}
     sceneName: Kopi
   - button: {fileID: 1566586321}
-    sceneName: Kopi
+    sceneName: Toast
 --- !u!1 &1566586319
 GameObject:
   m_ObjectHideFlags: 0

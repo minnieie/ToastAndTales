@@ -3,6 +3,8 @@ using TMPro;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 using System.Threading.Tasks;
+using UnityEngine.XR.Management;
+using System.Collections;
 
 public class MenuUIManager : MonoBehaviour
 {
@@ -227,13 +229,12 @@ public class MenuUIManager : MonoBehaviour
         signupConfirmPassword.text = "";
     }
 
-    // NEW METHOD: Load AR Scene
     private void LoadARScene(string sceneName)
     {
         if (!string.IsNullOrEmpty(sceneName))
         {
             Debug.Log($"Loading AR scene: {sceneName}");
-            SceneManager.LoadScene(sceneName);
+            StartCoroutine(InitializeARAndLoad(sceneName));
         }
         else
         {
@@ -241,7 +242,6 @@ public class MenuUIManager : MonoBehaviour
         }
     }
 
-    // Optional: Add progress display to menu
     public void UpdateProgressDisplay()
     {
         // You can add progress display here if needed
@@ -249,5 +249,23 @@ public class MenuUIManager : MonoBehaviour
         {
             Debug.Log($"Current progress: {FirebaseManager.Instance.GetProgressString()}");
         }
+    }
+    private IEnumerator InitializeARAndLoad(string sceneName)
+    {
+        // Initialize XR loader
+        yield return XRGeneralSettings.Instance.Manager.InitializeLoader();
+        
+        if (XRGeneralSettings.Instance.Manager.activeLoader != null)
+        {
+            XRGeneralSettings.Instance.Manager.StartSubsystems();
+            Debug.Log("AR subsystems initialized.");
+        }
+        else
+        {
+            Debug.LogError("Failed to initialize AR loader!");
+        }
+
+        // Now load the AR scene
+        SceneManager.LoadScene(sceneName);
     }
 }

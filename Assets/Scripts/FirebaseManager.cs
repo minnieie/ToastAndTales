@@ -7,17 +7,12 @@ using System.Threading.Tasks;
 
 public class FirebaseManager : MonoBehaviour
 {
-    /// <summary>
-    /// Manages Firebase authentication and database operations
-    /// NO UI references - UI is handled by scene-specific managers
-    /// </summary>
     public static FirebaseManager Instance { get; private set; }
 
     public FirebaseAuth auth;
     public FirebaseUser user;
     private DatabaseReference dbRef;
 
-    // Events for UI communication
     public System.Action<int, int> OnProgressUpdated;
     public System.Action OnUserLoggedIn;
     public System.Action OnUserLoggedOut;
@@ -29,23 +24,21 @@ public class FirebaseManager : MonoBehaviour
 
     private void Awake()
     {
-        // Handle singleton properly
         if (Instance != null && Instance != this)
         {
             Debug.LogWarning($"Destroying duplicate FirebaseManager on {gameObject.name}");
             DestroyImmediate(gameObject);
             return;
         }
-        
+
         Instance = this;
-        DontDestroyOnLoad(gameObject);
+        DontDestroyOnLoad(gameObject); // Keep singleton alive across scenes
     }
 
     private async void Start()
     {
         await InitializeFirebase();
 
-        // Auto-login if user exists
         if (auth != null && auth.CurrentUser != null)
         {
             user = auth.CurrentUser;
@@ -69,8 +62,6 @@ public class FirebaseManager : MonoBehaviour
             Debug.LogError($"✗ Firebase error: {status}");
         }
     }
-
-    // ============ AUTHENTICATION METHODS ============
 
     public async Task<bool> SignUpAsync(string email, string password)
     {
@@ -127,8 +118,6 @@ public class FirebaseManager : MonoBehaviour
         completedScenes.Clear();
         OnUserLoggedOut?.Invoke();
     }
-
-    // ============ PROGRESS TRACKING METHODS ============
 
     public async void MarkDishComplete(string sceneName)
     {
@@ -206,8 +195,6 @@ public class FirebaseManager : MonoBehaviour
     {
         return $"{CurrentProgress}/{TotalDishes}";
     }
-
-    // ============ HELPER METHODS ============
 
     public bool IsUserLoggedIn()
     {

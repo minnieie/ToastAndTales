@@ -3,6 +3,8 @@ using TMPro;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 using System.Threading.Tasks;
+using UnityEngine.XR.Management;
+using UnityEngine.XR.ARFoundation;
 
 public class UIManager : MonoBehaviour
 {
@@ -16,13 +18,7 @@ public class UIManager : MonoBehaviour
 
     [Header("Home Button")]
     public Button homeButton; // Optional: can assign in Inspector
-    public string homeSceneName = "HomeScene";
-
-    private void Awake()
-    {
-        // REMOVE DontDestroyOnLoad - UIManager should be scene-specific
-        // Unless you have a specific reason to persist it across scenes
-    }
+    public string homeSceneName = "Home";
 
     private void Start()
     {
@@ -135,10 +131,28 @@ public class UIManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Stop AR subsystems before leaving AR scene
+    /// </summary>
+    private void StopARSession()
+    {
+        var xrManager = XRGeneralSettings.Instance.Manager;
+
+        if (xrManager.isInitializationComplete)
+        {
+            xrManager.StopSubsystems();       // Stop cameras, tracked images, planes, etc.
+            xrManager.DeinitializeLoader();   // Fully deinitialize AR subsystems
+            Debug.Log("AR session stopped and deinitialized.");
+        }
+    }
+
     private void GoToHomeScene()
     {
         Debug.Log($"Going to home scene: {homeSceneName}");
         CancelInvoke(); // Cancel any pending invokes
+
+        // Stop AR session before leaving scene
+        StopARSession();
 
         if (!string.IsNullOrEmpty(homeSceneName))
         {
