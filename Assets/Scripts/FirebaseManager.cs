@@ -2,17 +2,14 @@ using UnityEngine;
 using Firebase;
 using Firebase.Auth;
 using Firebase.Database;
-using TMPro;
-using UnityEngine.UI;
-using UnityEngine.SceneManagement;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
 public class FirebaseManager : MonoBehaviour
 {
     /// <summary>
-    /// Manages user authentication using Firebase Authentication.
-    /// Provides UI for login and signup, and handles authentication logic.
+    /// Manages Firebase authentication and database operations
+    /// NO UI references - UI is handled by scene-specific managers
     /// </summary>
     public static FirebaseManager Instance { get; private set; }
 
@@ -20,80 +17,32 @@ public class FirebaseManager : MonoBehaviour
     public FirebaseUser user;
     private DatabaseReference dbRef;
 
-    [Header("Panels")]
-    public GameObject loginPanel;
-    public GameObject signupPanel;
-    public GameObject startPanel;
-    public GameObject historyPanel;
-    public GameObject menuPanel;
-
-    [Header("Login UI")]
-    public TMP_InputField loginEmail;
-    public TMP_InputField loginPassword;
-    public Button loginButton;
-    public Button gotoSignupButton;
-    public TextMeshProUGUI loginStatusText;
-
-    [Header("Signup UI")]
-    public TMP_InputField signupEmail;
-    public TMP_InputField signupPassword;
-    public TMP_InputField signupConfirmPassword;
-    public Button signupButton;
-    public Button gotoLoginButton;
-    public TextMeshProUGUI signupStatusText;
-
-    [Header("Start Panel UI")]
-    public Button storyButton;
-    public Button startJourneyButton;
-    public Button logoutButton;
-
-    [Header("History Panel UI")]
-    public Button historyBackButton;
-
-    [Header("Menu Panel UI")]
-    public Button menuBackButton;
-
-    [System.Serializable]
-    public class SceneButtonMapping
-    {
-        public Button button;
-        public string sceneName;
-    }
-
-    [Header("AR Scene Buttons")]
-    public SceneButtonMapping[] arSceneButtons;
+    // Events for UI communication
+    public System.Action<int, int> OnProgressUpdated;
+    public System.Action OnUserLoggedIn;
+    public System.Action OnUserLoggedOut;
 
     private bool isFirebaseReady = false;
     public int CurrentProgress { get; private set; } = 0;
     private const int TotalDishes = 3;
     private Dictionary<string, bool> completedScenes = new Dictionary<string, bool>();
 
-    private void OnEnable()
+    private void Awake()
     {
-        SceneManager.sceneLoaded += OnSceneLoaded;
-    }
-
-    private void OnDisable()
-    {
-        SceneManager.sceneLoaded -= OnSceneLoaded;
-    }
-
-    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
-    {
-        RebindButtons();
+        // Handle singleton properly
+        if (Instance != null && Instance != this)
+        {
+            Debug.LogWarning($"Destroying duplicate FirebaseManager on {gameObject.name}");
+            DestroyImmediate(gameObject);
+            return;
+        }
+        
+        Instance = this;
+        DontDestroyOnLoad(gameObject);
     }
 
     private async void Start()
     {
-        if (Instance != null && Instance != this)
-        {
-            Destroy(gameObject);
-            return;
-        }
-
-        Instance = this;
-        DontDestroyOnLoad(gameObject);
-
         await InitializeFirebase();
 
         // Auto-login if user exists
@@ -101,53 +50,7 @@ public class FirebaseManager : MonoBehaviour
         {
             user = auth.CurrentUser;
             await FetchUserProgress();
-            ShowPanel(startPanel);
-        }
-        else
-        {
-            ShowPanel(loginPanel);
-        }
-    }
-
-    private void RebindButtons()
-    {
-        loginButton?.onClick.RemoveAllListeners();
-        loginButton?.onClick.AddListener(Login);
-
-        signupButton?.onClick.RemoveAllListeners();
-        signupButton?.onClick.AddListener(SignUp);
-
-        gotoSignupButton?.onClick.RemoveAllListeners();
-        gotoSignupButton?.onClick.AddListener(() => ShowPanel(signupPanel));
-
-        gotoLoginButton?.onClick.RemoveAllListeners();
-        gotoLoginButton?.onClick.AddListener(() => ShowPanel(loginPanel));
-
-        logoutButton?.onClick.RemoveAllListeners();
-        logoutButton?.onClick.AddListener(Logout);
-
-        storyButton?.onClick.RemoveAllListeners();
-        storyButton?.onClick.AddListener(() => ShowPanel(historyPanel));
-
-        startJourneyButton?.onClick.RemoveAllListeners();
-        startJourneyButton?.onClick.AddListener(() => menuPanel?.SetActive(true));
-
-        historyBackButton?.onClick.RemoveAllListeners();
-        historyBackButton?.onClick.AddListener(() => ShowPanel(startPanel));
-
-        menuBackButton?.onClick.RemoveAllListeners();
-        menuBackButton?.onClick.AddListener(() => menuPanel?.SetActive(false));
-
-        if (arSceneButtons != null)
-        {
-            foreach (var mapping in arSceneButtons)
-            {
-                if (mapping.button != null && !string.IsNullOrEmpty(mapping.sceneName))
-                {
-                    mapping.button.onClick.RemoveAllListeners();
-                    mapping.button.onClick.AddListener(() => LoadSceneByName(mapping.sceneName));
-                }
-            }
+            OnUserLoggedIn?.Invoke();
         }
     }
 
@@ -167,47 +70,16 @@ public class FirebaseManager : MonoBehaviour
         }
     }
 
-    private void ShowPanel(GameObject panel)
+    // ============ AUTHENTICATION METHODS ============
+
+    public async Task<bool> SignUpAsync(string email, string password)
     {
-        loginPanel?.SetActive(false);
-        signupPanel?.SetActive(false);
-        startPanel?.SetActive(false);
-        historyPanel?.SetActive(false);
-        menuPanel?.SetActive(false);
-
-        panel?.SetActive(true);
-    }
-
-    public async void SignUp()
-    {
-        if (!isFirebaseReady)
-        {
-            UpdateStatus(signupStatusText, "Firebase not ready", Color.red);
-            return;
-        }
-
-        string email = signupEmail.text;
-        string password = signupPassword.text;
-        string confirm = signupConfirmPassword.text;
-
-        if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(password))
-        {
-            UpdateStatus(signupStatusText, "Enter email and password", Color.red);
-            return;
-        }
-
-        if (password != confirm)
-        {
-            UpdateStatus(signupStatusText, "Passwords do not match", Color.red);
-            return;
-        }
+        if (!isFirebaseReady) return false;
 
         try
         {
             var result = await auth.CreateUserWithEmailAndPasswordAsync(email, password);
             user = result.User;
-
-            UpdateStatus(signupStatusText, "Account created! Please log in.", Color.green);
 
             var userDict = new Dictionary<string, object>
             {
@@ -219,48 +91,31 @@ public class FirebaseManager : MonoBehaviour
             await dbRef.Child("users").Child(user.UserId).UpdateChildrenAsync(userDict);
 
             CurrentProgress = 0;
-            ShowPanel(loginPanel);
+            return true;
         }
         catch (FirebaseException e)
         {
-            if ((AuthError)e.ErrorCode == AuthError.EmailAlreadyInUse)
-                UpdateStatus(signupStatusText, "Email already registered", Color.red);
-            else
-                UpdateStatus(signupStatusText, $"Signup failed: {e.Message}", Color.red);
+            Debug.LogError($"Signup failed: {e.Message}");
+            return false;
         }
     }
 
-    public async void Login()
+    public async Task<bool> LoginAsync(string email, string password)
     {
-        if (!isFirebaseReady)
-        {
-            UpdateStatus(loginStatusText, "Firebase not ready", Color.red);
-            return;
-        }
-
-        string email = loginEmail.text;
-        string password = loginPassword.text;
-
-        if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(password))
-        {
-            UpdateStatus(loginStatusText, "Enter email and password", Color.red);
-            return;
-        }
+        if (!isFirebaseReady) return false;
 
         try
         {
             var result = await auth.SignInWithEmailAndPasswordAsync(email, password);
             user = result.User;
 
-            UpdateStatus(loginStatusText, "Login successful!", Color.green);
-
-            await SaveEmailToFirebase();
             await FetchUserProgress();
-            ShowPanel(startPanel);
+            OnUserLoggedIn?.Invoke();
+            return true;
         }
         catch
         {
-            UpdateStatus(loginStatusText, "Login failed", Color.red);
+            return false;
         }
     }
 
@@ -270,40 +125,10 @@ public class FirebaseManager : MonoBehaviour
         user = null;
         CurrentProgress = 0;
         completedScenes.Clear();
-
-        ShowPanel(loginPanel);
-        loginEmail.text = "";
-        loginPassword.text = "";
+        OnUserLoggedOut?.Invoke();
     }
 
-    private void UpdateStatus(TextMeshProUGUI textElement, string message, Color color)
-    {
-        if (textElement != null)
-        {
-            textElement.text = message;
-            textElement.color = color;
-        }
-    }
-
-    private async Task SaveEmailToFirebase()
-    {
-        if (user == null) return;
-
-        try
-        {
-            await dbRef.Child("users").Child(user.UserId).Child("email").SetValueAsync(user.Email);
-            Debug.Log($"✓ Email saved to Firebase: {user.Email}");
-        }
-        catch (System.Exception e)
-        {
-            Debug.LogError($"Error saving email: {e}");
-        }
-    }
-
-    private void LoadSceneByName(string sceneName)
-    {
-        SceneManager.LoadScene(sceneName);
-    }
+    // ============ PROGRESS TRACKING METHODS ============
 
     public async void MarkDishComplete(string sceneName)
     {
@@ -314,6 +139,7 @@ public class FirebaseManager : MonoBehaviour
         CurrentProgress = Mathf.Clamp(CurrentProgress + 1, 0, TotalDishes);
 
         await SaveProgressToFirebase(sceneName);
+        OnProgressUpdated?.Invoke(CurrentProgress, TotalDishes);
 
         Debug.Log($"✓ {sceneName} completed! Progress: {CurrentProgress}/{TotalDishes}");
 
@@ -330,8 +156,6 @@ public class FirebaseManager : MonoBehaviour
         {
             await dbRef.Child("users").Child(uid).Child("progress").SetValueAsync(CurrentProgress);
             await dbRef.Child("users").Child(uid).Child(sceneName).SetValueAsync(true);
-
-            Debug.Log($"Saved to Firebase: {sceneName} = complete, progress = {CurrentProgress}");
         }
         catch (System.Exception e)
         {
@@ -356,19 +180,15 @@ public class FirebaseManager : MonoBehaviour
                 foreach (var childSnapshot in snapshot.Children)
                 {
                     string key = childSnapshot.Key;
-                    if (key != "progress" && key != "createdAt")
+                    if (key != "progress" && key != "email" && key != "createdAt")
                     {
                         if (childSnapshot.Value is bool sceneBool)
                             completedScenes[key] = sceneBool;
                     }
                 }
 
-                Debug.Log($"✓ Loaded user progress: {CurrentProgress}/{TotalDishes} dishes completed");
-            }
-            else
-            {
-                CurrentProgress = 0;
-                completedScenes.Clear();
+                OnProgressUpdated?.Invoke(CurrentProgress, TotalDishes);
+                Debug.Log($"✓ Loaded user progress: {CurrentProgress}/{TotalDishes}");
             }
         }
         catch (System.Exception e)
@@ -385,5 +205,17 @@ public class FirebaseManager : MonoBehaviour
     public string GetProgressString()
     {
         return $"{CurrentProgress}/{TotalDishes}";
+    }
+
+    // ============ HELPER METHODS ============
+
+    public bool IsUserLoggedIn()
+    {
+        return user != null;
+    }
+
+    public string GetUserEmail()
+    {
+        return user?.Email ?? "Not logged in";
     }
 }

@@ -3,7 +3,6 @@ using UnityEngine;
 using UnityEngine.XR.ARFoundation;
 using UnityEngine.XR.ARSubsystems;
 
-
 public class ImageTracker : MonoBehaviour
 {
     [SerializeField]
@@ -13,10 +12,7 @@ public class ImageTracker : MonoBehaviour
     private GameObject[] placeablePrefabs;
 
     private Dictionary<string, GameObject> spawnedPrefabs = new Dictionary<string, GameObject>();
-
-    private Dictionary<GameObject, GameObject> spawnedObjects = new Dictionary<GameObject, GameObject>();
-
-    private string[] someArray = new string[]{"Image1", "Image2", "Image3"};
+    private Dictionary<GameObject, GameObject> prefabDefaults = new Dictionary<GameObject, GameObject>();
 
     private void Start()
     {
@@ -27,6 +23,14 @@ public class ImageTracker : MonoBehaviour
         }
     }
 
+    private void OnDestroy()
+    {
+        if (trackedImageManager != null)
+        {
+            trackedImageManager.trackablesChanged.RemoveListener(OnImageChanged);
+        }
+    }
+
     void SetupPrefabs()
     {
         foreach (GameObject prefab in placeablePrefabs)
@@ -34,53 +38,85 @@ public class ImageTracker : MonoBehaviour
             GameObject newPrefab = Instantiate(prefab);
             newPrefab.name = prefab.name;
             newPrefab.SetActive(false);
+
             spawnedPrefabs.Add(prefab.name, newPrefab);
-            spawnedObjects.Add(newPrefab, prefab);
+            prefabDefaults.Add(newPrefab, prefab);
         }
     }
 
     void OnImageChanged(ARTrackablesChangedEventArgs<ARTrackedImage> eventArgs)
     {
+        // Handle newly detected images
         foreach (ARTrackedImage trackedImage in eventArgs.added)
         {
-            UpdateImage(trackedImage);
+            if (trackedImage != null)
+                UpdateImage(trackedImage);
         }
 
+        // Handle updated tracking state
         foreach (ARTrackedImage trackedImage in eventArgs.updated)
         {
-            UpdateImage(trackedImage);
+            if (trackedImage != null)
+                UpdateImage(trackedImage);
         }
 
-        foreach (KeyValuePair<TrackableId, ARTrackedImage> lostObj in eventArgs.removed)
+        // Handle removed images separately - removed returns KeyValuePairs
+        foreach (var removedPair in eventArgs.removed)
         {
-            UpdateImage(lostObj.Value);
+            ARTrackedImage trackedImage = removedPair.Value;
+            // Don't try to access the destroyed trackedImage
+            // Just deactivate prefabs based on their known state
+            if (trackedImage != null && trackedImage.referenceImage != null)
+            {
+                string imageName = trackedImage.referenceImage.name;
+                if (spawnedPrefabs.TryGetValue(imageName, out GameObject prefab))
+                {
+                    prefab.SetActive(false);
+                    prefab.transform.SetParent(null);
+                }
+            }
         }
     }
 
     void UpdateImage(ARTrackedImage trackedImage)
     {
-        if(trackedImage != null)
-        {
-            if (trackedImage.trackingState == TrackingState.Limited || trackedImage.trackingState == TrackingState.None)
-            {
-                //Disable the associated content
-                spawnedPrefabs[trackedImage.referenceImage.name].transform.SetParent(null);
-                spawnedPrefabs[trackedImage.referenceImage.name].SetActive(false);
-            }
-            else if (trackedImage.trackingState == TrackingState.Tracking)
-            {
-                // Debug.Log(trackedImage.gameObject.name + " is being tracked.");
-                //Enable the associated content
-                if(spawnedPrefabs[trackedImage.referenceImage.name].transform.parent != trackedImage.transform)
-                {
-                    Debug.Log("Enabling associated content: " + spawnedPrefabs[trackedImage.referenceImage.name].name);
-                    spawnedPrefabs[trackedImage.referenceImage.name].transform.SetParent(trackedImage.transform);
-                    spawnedPrefabs[trackedImage.referenceImage.name].transform.localPosition = spawnedObjects[spawnedPrefabs[trackedImage.referenceImage.name]].transform.localPosition;
-                    spawnedPrefabs[trackedImage.referenceImage.name].transform.localRotation = spawnedObjects[spawnedPrefabs[trackedImage.referenceImage.name]].transform.localRotation;
+        if (trackedImage == null || trackedImage.referenceImage == null)
+            return;
 
-                    spawnedPrefabs[trackedImage.referenceImage.name].SetActive(true);
+        string imageName = trackedImage.referenceImage.name;
+
+        if (!spawnedPrefabs.ContainsKey(imageName))
+            return;
+
+        GameObject prefab = spawnedPrefabs[imageName];
+
+        // **Check if prefab was destroyed**
+        if (prefab == null)
+        {
+            // Remove from dictionary so we don't try again
+            spawnedPrefabs.Remove(imageName);
+            return;
+        }
+
+        if (trackedImage.trackingState == TrackingState.Tracking)
+        {
+            // Attach prefab to tracked image transform
+            if (prefab.transform.parent != trackedImage.transform)
+            {
+                prefab.transform.SetParent(trackedImage.transform);
+                if (prefabDefaults.ContainsKey(prefab))
+                {
+                    prefab.transform.localPosition = prefabDefaults[prefab].transform.localPosition;
+                    prefab.transform.localRotation = prefabDefaults[prefab].transform.localRotation;
                 }
             }
+            prefab.SetActive(true);
+        }
+        else
+        {
+            prefab.SetActive(false);
+            prefab.transform.SetParent(null);
         }
     }
+
 }
