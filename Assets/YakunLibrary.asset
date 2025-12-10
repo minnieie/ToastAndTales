@@ -53,7 +53,17 @@ MonoBehaviour:
     m_SerializedTextureGuid:
       m_GuidLow: 11017198745301833850
       m_GuidHigh: 11521727283835116313
-    m_Size: {x: 0.15, y: 0.22500001}
+    m_Size: {x: 0.1, y: 0.15}
     m_SpecifySize: 1
     m_Name: kettle
+    m_Texture: {fileID: 0}
+  - m_SerializedGuid:
+      m_GuidLow: 5502170908944225565
+      m_GuidHigh: 7638300134123896220
+    m_SerializedTextureGuid:
+      m_GuidLow: 9936171893430714606
+      m_GuidHigh: 6777137141930831530
+    m_Size: {x: 0.15, y: 0.15}
+    m_SpecifySize: 1
+    m_Name: knife
     m_Texture: {fileID: 0}
