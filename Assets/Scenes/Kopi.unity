@@ -8082,8 +8082,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::UIManager
   introPanel: {fileID: 1920140152}
   progressText: {fileID: 770122072}
-  badgesParent: {fileID: 0}
-  badgePrefab: {fileID: 0}
   homeButton: {fileID: 2085017701}
   homeSceneName: Home
 --- !u!4 &2063318287
@@ -8129,7 +8127,7 @@ RectTransform:
   m_GameObject: {fileID: 2085017699}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 0.57572, y: 0.57572, z: 0.57572}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1804415303}
@@ -8137,7 +8135,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -349, y: 655}
+  m_AnchoredPosition: {x: -68, y: 209}
   m_SizeDelta: {x: 160, y: 30}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &2085017701
