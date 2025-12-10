@@ -322,13 +322,13 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: '"Why does Ya Kun Kopi taste so distinct? In the 1940s, Ah Koon roasted
-    coffee beans over firewood at the back of his stall.
+  m_text: 'While Ah Koon brewed the coffee, his wife perfected the Kaya! In 1936,
+    she created her own secret recipe using eggs, sugar, and coconut milk.
 
 
-    He added margarine
-    and sugar during roasting to caramelize the beans. This created the glossy, aromatic,
-    and full-bodied ''Nanyang Kopi'' we love today!"'
+    Paired
+    with bread grilled over charcoal for that signature smoky crunch, it became the
+    legendary breakfast we love today.'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -541,7 +541,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: The Secret Roast
+  m_text: A Labor of Love
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -762,7 +762,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1856581039496700099}
   m_Layer: 0
-  m_Name: toast
+  m_Name: Toast
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1117,6 +1117,7 @@ MonoBehaviour:
   plainBreadModel: {fileID: 1190213966735113359}
   butteredToastModel: {fileID: 5630094513535041727}
   knife: {fileID: 2992525176056492381, guid: 028cb5e29cb458f4cad68ad7da0263e2, type: 3}
+  toastUI: {fileID: 0}
   progressUI: {fileID: 0}
   spreadCompletionTime: 1
 --- !u!4 &4420256328066352854 stripped

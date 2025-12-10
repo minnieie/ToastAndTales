@@ -45,7 +45,7 @@ MonoBehaviour:
       m_GuidHigh: 16921290431350530360
     m_Size: {x: 0.15, y: 0.15}
     m_SpecifySize: 1
-    m_Name: toast
+    m_Name: Toast
     m_Texture: {fileID: 0}
   - m_SerializedGuid:
       m_GuidLow: 5625938554655719476
