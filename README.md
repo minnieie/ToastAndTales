@@ -1,6 +1,6 @@
 # Toast & Tales
 
-A Heritage AR Experience for Ya Kun Kaya Toast
+A Heritage AR Experience for Ya Kun Kaya Toast <br>
 Developers: Ruimin & Baihui
 
 ## 1. Project Overview
