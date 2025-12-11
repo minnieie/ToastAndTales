@@ -6,27 +6,20 @@ using UnityEngine;
 /// and updates Firebase progress.
 /// </summary>
 public class CupPourTrigger : MonoBehaviour
-{
+{   
     [Header("Firebase Settings")]
-    [Tooltip("The unique name for this dish in the database (e.g., 'Kopi', 'Teh').")]
     public string dishIdentifier = "Kopi"; 
 
     [Header("Cup Visuals")]
-    [Tooltip("The model representing the empty cup state.")]
     public GameObject emptyCupModel;
-
-    [Tooltip("The model representing the filled cup state (liquid inside).")]
     public GameObject filledCupModel;
 
     [Header("External References")]
-    [Tooltip("Reference to the script controlling the Kettle's pouring animation/particles.")]
     public KettlePour kettle;
 
-    [Tooltip("UI Manager specific to the Cup interaction (local feedback).")]
     public CupUIManager uiManager;
 
     [Header("Global Progress")]
-    [Tooltip("Main UI Manager that tracks the overall game steps (1/3, 2/3, etc.).")]
     public UIManager progressUI;  
 
     // Internal flag to ensure the score is only counted once per session
@@ -79,23 +72,29 @@ public class CupPourTrigger : MonoBehaviour
     {
         stepCompleted = true;  // Lock this step to prevent double counting score
 
-        // 1. Start the pouring effect on the kettle
+        // 1. Play pouring sound effect
+        if (AudioManager.Instance != null)
+        {
+            AudioManager.Instance.PlayCoffeePour();
+        }
+
+        // 2. Start the pouring effect on the kettle
         if (kettle != null) kettle.StartPouring();
 
-        // 2. Visuals
+        // 3. Visuals
         SetVisualsToFilled();
 
-        // 3. UI Updates
+        // 4. UI Updates
         if (uiManager != null) uiManager.ShowCongrats();
         if (progressUI != null) progressUI.CompleteStep();  
 
-        // 4. FIREBASE UPDATE
+        // 5. FIREBASE UPDATE
         if (FirebaseManager.Instance != null)
         {
             // Calculate a rough time or just use Time.time
             float timeTaken = Time.timeSinceLevelLoad;
             FirebaseManager.Instance.MarkDishComplete(dishIdentifier, timeTaken);
-            Debug.Log($"☕ Sent {dishIdentifier} completion to Firebase!");
+            Debug.Log($"Sent {dishIdentifier} completion to Firebase!");
         }
         else
         {

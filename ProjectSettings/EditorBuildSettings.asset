@@ -17,7 +17,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/Tray.unity
     guid: c593949a6b42f9d46bd2d69d824af88e
-  - enabled: 0
+  - enabled: 1
     path: Assets/Scenes/ARFilter.unity
     guid: 5bbc5616f508c6f49ad240f58c1ad208
   m_configObjects:

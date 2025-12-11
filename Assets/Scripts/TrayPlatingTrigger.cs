@@ -58,6 +58,12 @@ public class TraySwapTrigger : MonoBehaviour
             // 2. Show the perfect static model attached to the tray
             if (staticKopiModel != null) staticKopiModel.SetActive(true);
 
+            // 3. Play Sound 
+            if (AudioManager.Instance != null)
+            {
+                AudioManager.Instance.PlayTraySwap();
+            }
+
             hasKopi = true;
             Debug.Log("Kopi Plated!");
             
@@ -74,6 +80,12 @@ public class TraySwapTrigger : MonoBehaviour
 
             // 2. Show the perfect static model
             if (staticToastModel != null) staticToastModel.SetActive(true);
+
+            // 3. Play Sound 
+            if (AudioManager.Instance != null)
+            {
+                AudioManager.Instance.PlayTraySwap();
+            }
 
             hasToast = true;
             Debug.Log("Toast Plated!");

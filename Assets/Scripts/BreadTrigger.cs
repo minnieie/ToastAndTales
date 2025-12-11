@@ -11,25 +11,25 @@ public class BreadTrigger : MonoBehaviour
     public string dishName = "Toast"; 
 
     [Header("Bread Visuals")]
-    [Tooltip("The model representing the plain, unbuttered bread.")]
+    // The model representing the plain bread before spreading
     public GameObject plainBreadModel;
 
-    [Tooltip("The model representing the finished buttered toast.")]
+    // The model representing the finished buttered toast
     public GameObject butteredToastModel;
 
     [Header("Interaction References")]
-    [Tooltip("Reference to the Knife script that handles spreading particles/animation.")]
+    // Reference to the Knife script that handles spreading particles/animation.
     public KnifeSpread knife;
 
     [Header("UI Managers")]
-    [Tooltip("UI Manager specific to the Toast interaction (shows 'Next' button).")]
+    // UI Manager specific to the Toast interaction (shows 'Next' button).
     public ToastUIManager toastUI;
 
-    [Tooltip("Main UI Manager that tracks the overall game steps (1/3, 2/3, etc.).")]
+    // Main UI Manager that tracks the overall game steps (1/3, 2/3, etc.).
     public UIManager progressUI;
 
     [Header("Configuration")]
-    [Tooltip("How many seconds the knife must stay inside the trigger to finish spreading.")]
+    // How many seconds the knife must stay inside the trigger to finish spreading.
     public float spreadCompletionTime = 1f;
 
     // Internal state tracking
@@ -119,16 +119,22 @@ public class BreadTrigger : MonoBehaviour
     private void CompleteStep()
     {
         stepCompleted = true;
+        
+        // 1. Play spreading complete sound effect
+        if (AudioManager.Instance != null)
+        {
+            AudioManager.Instance.PlayToastSpread();
+        }
 
-        // --- 1. Visuals: Switch models ---
+        // 2. Visuals: Switch models ---
         if (plainBreadModel != null) plainBreadModel.SetActive(false);
         if (butteredToastModel != null) butteredToastModel.SetActive(true);
 
-        // --- 2. UI: Update Interfaces ---
+        // 3. UI: Update Interfaces ---
         toastUI?.ShowCongrats();       // Show local success UI
         progressUI?.CompleteStep();    // Update global progress
 
-        // --- 3. Firebase: Save Data ---
+        // 4. Firebase: Save Data ---
         if (FirebaseManager.Instance != null)
         {
             // We pass the dishName ("Toast") and the timer duration as 'timeTaken'
