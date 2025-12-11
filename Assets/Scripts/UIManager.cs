@@ -6,29 +6,47 @@ using System.Threading.Tasks;
 using UnityEngine.XR.Management;
 using UnityEngine.XR.ARFoundation;
 
+/// <summary>
+/// The central manager for the AR Gameplay Scene.
+/// Handles UI updates (Progress, Intro, Feedback), Scene Navigation, and AR Session lifecycle.
+/// Acts as a Singleton to ensure easy access from other scripts like Triggers.
+/// </summary>
 public class UIManager : MonoBehaviour
 {
+    /// <summary>
+    /// Singleton instance for global access.
+    /// </summary>
     public static UIManager Instance { get; private set; }
 
     [Header("UI Panels")]
+    [Tooltip("The panel shown at the start of the scene (instructions/intro).")]
     public GameObject introPanel;
 
-    // Add a UI element to display messages (optional but recommended for ShowMessage)
     [Header("Feedback")]
+    [Tooltip("Text element used to show temporary status messages (e.g., 'Scan the bread').")]
     public TextMeshProUGUI feedbackText; 
 
     [Header("Progress Tracking")]
-    public TextMeshProUGUI progressText; // Shows "1/3", "2/3", etc.
+    [Tooltip("Text element displaying the current step count (e.g., '1/3').")]
+    public TextMeshProUGUI progressText; 
+    
+    // Internal state tracking
     private int currentStep = 0;
-    private readonly int totalSteps = 3; // Changed to readonly for consistency
+    private readonly int totalSteps = 3; 
 
     [Header("Home Button")]
+    [Tooltip("The button to return to the Main Menu.")]
     public Button homeButton; 
+    
+    [Tooltip("The exact name of the menu scene to load.")]
     public string homeSceneName = "Home";
 
+    /// <summary>
+    /// Sets up the Singleton instance.
+    /// Destroys duplicates to ensure only one UIManager exists.
+    /// </summary>
     private void Awake()
     {
-        // Singleton setup
         if (Instance != null && Instance != this)
         {
             Destroy(gameObject); 
@@ -41,6 +59,9 @@ public class UIManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Initializes UI, finds buttons dynamically, and syncs progress with Firebase.
+    /// </summary>
     private void Start()
     {
         // Assign buttons dynamically in case scene objects are new
@@ -53,6 +74,9 @@ public class UIManager : MonoBehaviour
         TryFetchFirebaseProgress();
     }
 
+    /// <summary>
+    /// Locates the Home Button in the scene if not assigned manually.
+    /// </summary>
     private void AssignButtons()
     {
         // If homeButton not assigned in Inspector, try finding it dynamically
@@ -78,6 +102,9 @@ public class UIManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Sets initial UI states.
+    /// </summary>
     private void InitializeUI()
     {
         // Initialize progress text
@@ -87,6 +114,9 @@ public class UIManager : MonoBehaviour
         ShowIntroPanel();
     }
 
+    /// <summary>
+    /// Attempts to get the saved progress from Firebase to sync the local UI.
+    /// </summary>
     private async void TryFetchFirebaseProgress()
     {
         if (FirebaseManager.Instance != null && FirebaseManager.Instance.user != null)
@@ -95,7 +125,7 @@ public class UIManager : MonoBehaviour
             {
                 await FirebaseManager.Instance.FetchUserProgress();
 
-                // Update progress if different
+                // Update progress if different from local default
                 if (FirebaseManager.Instance.CurrentProgress != currentStep)
                 {
                     currentStep = Mathf.Clamp(FirebaseManager.Instance.CurrentProgress, 0, totalSteps);
@@ -109,6 +139,10 @@ public class UIManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Increments the current step count, updates the UI, and saves to Firebase.
+    /// Called by interaction scripts (e.g., CupPourTrigger, TraySwapTrigger).
+    /// </summary>
     public void CompleteStep()
     {
         currentStep = Mathf.Clamp(currentStep + 1, 0, totalSteps);
@@ -117,17 +151,19 @@ public class UIManager : MonoBehaviour
         // Save progress to Firebase
         if (FirebaseManager.Instance != null)
         {
-            // Assuming your FirebaseManager has a method to update the step count
             FirebaseManager.Instance.UpdateUserProgress(currentStep); 
         }
 
         if (currentStep == totalSteps)
         {
             Debug.Log("All tasks complete!");
-            // TODO: Trigger reward/end game logic
+            // Note: Victory Logic is handled by GameCompletion.cs or external listeners
         }
     }
 
+    /// <summary>
+    /// Updates the text display (e.g., "1/3").
+    /// </summary>
     private void UpdateProgressText()
     {
         if (progressText != null)
@@ -136,6 +172,9 @@ public class UIManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Shows the intro panel and auto-hides it after 3 seconds.
+    /// </summary>
     public void ShowIntroPanel()
     {
         if (introPanel != null)
@@ -155,7 +194,9 @@ public class UIManager : MonoBehaviour
     
     /// <summary>
     /// Displays a temporary message to the user for feedback (used by ImageTracker).
+    /// Message disappears after 3 seconds.
     /// </summary>
+    /// <param name="message">The string to display.</param>
     public void ShowMessage(string message)
     {
         if (feedbackText != null)
@@ -176,7 +217,8 @@ public class UIManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Stop AR subsystems before leaving AR scene
+    /// Stops AR subsystems (Camera, Plane Detection) before leaving the scene.
+    /// Prevents crashes on some mobile devices when switching scenes.
     /// </summary>
     private void StopARSession()
     {
@@ -190,6 +232,9 @@ public class UIManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Cleanly exits the AR scene and loads the Home Menu.
+    /// </summary>
     private void GoToHomeScene()
     {
         Debug.Log($"Going to home scene: {homeSceneName}");
@@ -208,11 +253,18 @@ public class UIManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Returns the current progress step.
+    /// </summary>
     public int GetCurrentStep()
     {
         return currentStep;
     }
 
+    /// <summary>
+    /// Manually sets the progress step (useful for debugging or loading saves).
+    /// </summary>
+    /// <param name="step">The step number to set.</param>
     public void SetProgress(int step)
     {
         currentStep = Mathf.Clamp(step, 0, totalSteps);
