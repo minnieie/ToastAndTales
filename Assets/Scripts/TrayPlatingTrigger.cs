@@ -85,17 +85,24 @@ public class TraySwapTrigger : MonoBehaviour
 
     /// <summary>
     /// Checks if both the Kopi and Toast have been successfully plated.
-    /// If both are present, marks the step as complete and notifies the UIManager.
     /// </summary>
     private void CheckWin()
     {
-        if (hasKopi && hasToast)
+        // Only run this if we have both items and haven't finished yet
+        if (hasKopi && hasToast && !stepCompleted)
         {
-            stepCompleted = true;
+            stepCompleted = true; // Lock it immediately
             Debug.Log("Full Set Served!");
             
-            // Notify the Global UI Manager that this task (and likely the game) is done
+            // 1. Update the Score (UI + Database Number)
             if (progressUI != null) progressUI.CompleteStep();
+
+            // 2. Mark the specific task as done in Firebase (Consistency!)
+            if (FirebaseManager.Instance != null)
+            {
+                // You can name this whatever you want to see in the database
+                FirebaseManager.Instance.MarkDishComplete("TraySet", Time.timeSinceLevelLoad);
+            }
         }
     }
 }

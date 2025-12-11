@@ -3,10 +3,14 @@ using UnityEngine;
 /// <summary>
 /// Handles the interaction between a Kettle and a Cup. 
 /// Detects when the Kettle enters the trigger zone, swaps the cup visual to "Filled", 
-/// triggers pouring effects, and updates the game progress.
+/// and updates Firebase progress.
 /// </summary>
 public class CupPourTrigger : MonoBehaviour
 {
+    [Header("Firebase Settings")]
+    [Tooltip("The unique name for this dish in the database (e.g., 'Kopi', 'Teh').")]
+    public string dishIdentifier = "Kopi"; 
+
     [Header("Cup Visuals")]
     [Tooltip("The model representing the empty cup state.")]
     public GameObject emptyCupModel;
@@ -33,63 +37,90 @@ public class CupPourTrigger : MonoBehaviour
     /// </summary>
     private void Awake()
     {
-        // FIX: CS0618 Warning resolved by using FindFirstObjectByType
+        // FIX: Replaced FindObjectOfType with FindFirstObjectByType for newer Unity versions
         if (progressUI == null)
             progressUI = Object.FindFirstObjectByType<UIManager>();
+            
+        if (uiManager == null)
+            uiManager = Object.FindFirstObjectByType<CupUIManager>();
+    }
+
+    private void Start()
+    {
+        // 1. CHECK FIREBASE HISTORY
+        // If the user already finished "Kopi" in a previous session (or earlier in this one),
+        // we force the cup to look full immediately so they don't have to do it again.
+        if (FirebaseManager.Instance != null && FirebaseManager.Instance.IsSceneCompleted(dishIdentifier))
+        {
+            stepCompleted = true; // Lock step
+            SetVisualsToFilled(); // Visual update
+        }
+        else
+        {
+            // Ensure correct starting state
+            if (emptyCupModel != null) emptyCupModel.SetActive(true);
+            if (filledCupModel != null) filledCupModel.SetActive(false);
+        }
     }
 
     /// <summary>
     /// Triggered when the Kettle enters the Cup's pouring zone.
-    /// Handles visual swapping and progress updates.
     /// </summary>
-    /// <param name="other">The collider entering the trigger.</param>
     private void OnTriggerEnter(Collider other)
     {
         // Check if the object is the Kettle and if we haven't already completed this step
         if (other.CompareTag("Kettle") && !stepCompleted)
         {
-            stepCompleted = true;  // Lock this step to prevent double counting score
+            CompletePouringStep();
+        }
+    }
 
-            // 1. Start the pouring effect on the kettle
-            if (kettle != null)
-                kettle.StartPouring();
+    private void CompletePouringStep()
+    {
+        stepCompleted = true;  // Lock this step to prevent double counting score
 
-            // 2. Swap visuals from Empty -> Filled
-            if (emptyCupModel != null && filledCupModel != null)
-            {
-                emptyCupModel.SetActive(false);
-                filledCupModel.SetActive(true);
+        // 1. Start the pouring effect on the kettle
+        if (kettle != null) kettle.StartPouring();
 
-                // 3. Show local congratulations (floating text/particle)
-                if (uiManager != null)
-                    uiManager.ShowCongrats();
+        // 2. Visuals
+        SetVisualsToFilled();
 
-                // 4. Update global game progress
-                if (progressUI != null)
-                    progressUI.CompleteStep();  
-            }
+        // 3. UI Updates
+        if (uiManager != null) uiManager.ShowCongrats();
+        if (progressUI != null) progressUI.CompleteStep();  
+
+        // 4. FIREBASE UPDATE
+        if (FirebaseManager.Instance != null)
+        {
+            // Calculate a rough time or just use Time.time
+            float timeTaken = Time.timeSinceLevelLoad;
+            FirebaseManager.Instance.MarkDishComplete(dishIdentifier, timeTaken);
+            Debug.Log($"☕ Sent {dishIdentifier} completion to Firebase!");
+        }
+        else
+        {
+            Debug.LogWarning("Firebase Manager is missing, progress not saved.");
         }
     }
 
     /// <summary>
-    /// Triggered when the Kettle leaves the Cup's pouring zone.
-    /// Resets the visuals and stops the pouring effect.
+    /// Helper to just swap the models
     /// </summary>
-    /// <param name="other">The collider exiting the trigger.</param>
+    private void SetVisualsToFilled()
+    {
+        if (emptyCupModel != null) emptyCupModel.SetActive(false);
+        if (filledCupModel != null) filledCupModel.SetActive(true);
+    }
+
+    /// <summary>
+    /// Triggered when the Kettle leaves the Cup's pouring zone.
+    /// </summary>
     private void OnTriggerExit(Collider other)
     {
         if (other.CompareTag("Kettle"))
         {
-            // 1. Stop the pouring effect
-            if (kettle != null)
-                kettle.StopPouring();
-
-            // 2. Reset visuals (Optional: This makes the cup look empty again if you pull away)
-            if (emptyCupModel != null && filledCupModel != null)
-            {
-                emptyCupModel.SetActive(true);
-                filledCupModel.SetActive(false);
-            }
+            // Stop the pouring effect
+            if (kettle != null) kettle.StopPouring();
         }
     }
 }

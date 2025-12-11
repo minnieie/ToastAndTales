@@ -63,9 +63,19 @@ public class FirebaseManager : MonoBehaviour
         }
     }
 
-    public async Task<bool> SignUpAsync(string email, string password)
-    {
-        if (!isFirebaseReady) return false;
+    /// <summary>
+    /// Signs up a new user with email and password.
+    /// </summary>
+    public async Task<string> SignUpAsync(string email, string password)
+    {   
+        // 1. Pre-check: Is Firebase ready?
+        if (!isFirebaseReady) return "Firebase is not ready.";
+
+        // 2. Manual Check: This gives you the specific "Password too short" feedback immediately
+        if (password.Length < 6)
+        {
+            return "Password is too short! It must be at least 6 characters.";
+        }
 
         try
         {
@@ -76,21 +86,25 @@ public class FirebaseManager : MonoBehaviour
             {
                 { "email", user.Email },
                 { "progress", 0 },
-                { "createdAt", System.DateTime.Now.ToString() }
+                { "createdAt", System.DateTime.Now.ToString() },
+                { "lastLogin", System.DateTime.Now.ToString() }
             };
 
             await dbRef.Child("users").Child(user.UserId).UpdateChildrenAsync(userDict);
 
             CurrentProgress = 0;
-            return true;
+            
+            // 3. Return an empty string to indicate SUCCESS
+            return ""; 
         }
         catch (FirebaseException e)
         {
+            // 4. If Firebase fails (e.g., "Email already in use"), return that specific message
             Debug.LogError($"Signup failed: {e.Message}");
-            return false;
+            return e.Message; 
         }
     }
-
+    // --- UPDATED: Keeps 'lastLogin' update ---
     public async Task<bool> LoginAsync(string email, string password)
     {
         if (!isFirebaseReady) return false;
@@ -99,6 +113,12 @@ public class FirebaseManager : MonoBehaviour
         {
             var result = await auth.SignInWithEmailAndPasswordAsync(email, password);
             user = result.User;
+
+            // Update Last Login timestamp on successful login
+            if (user != null)
+            {
+                await dbRef.Child("users").Child(user.UserId).Child("lastLogin").SetValueAsync(System.DateTime.Now.ToString());
+            }
 
             await FetchUserProgress();
             OnUserLoggedIn?.Invoke();
@@ -119,32 +139,43 @@ public class FirebaseManager : MonoBehaviour
         OnUserLoggedOut?.Invoke();
     }
 
-    public async void MarkDishComplete(string sceneName)
+    public async void MarkDishComplete(string sceneName, float timeTaken = 0f)
     {
         if (user == null) return;
         if (IsSceneCompleted(sceneName)) return;
 
         completedScenes[sceneName] = true;
-        CurrentProgress = Mathf.Clamp(CurrentProgress + 1, 0, TotalDishes);
 
-        await SaveProgressToFirebase(sceneName);
+        await SaveProgressToFirebase(sceneName, timeTaken);
         OnProgressUpdated?.Invoke(CurrentProgress, TotalDishes);
 
         Debug.Log($"✓ {sceneName} completed! Progress: {CurrentProgress}/{TotalDishes}");
 
         if (CurrentProgress >= TotalDishes)
-            Debug.Log("🎉 ALL DISHES COMPLETED!");
+            Debug.Log("ALL DISHES COMPLETED!");
     }
 
-    private async Task SaveProgressToFirebase(string sceneName)
+    private async Task SaveProgressToFirebase(string sceneName, float timeTaken)
     {
         if (user == null) return;
 
         string uid = user.UserId;
         try
         {
+            // 1. Save overall progress count
             await dbRef.Child("users").Child(uid).Child("progress").SetValueAsync(CurrentProgress);
-            await dbRef.Child("users").Child(uid).Child(sceneName).SetValueAsync(true);
+
+            // 2. Create detailed data object
+            var dishData = new Dictionary<string, object>
+            {
+                { "completed", true },
+                { "timeTaken", timeTaken },
+                { "dateCompleted", System.DateTime.Now.ToString() }
+            };
+
+            // 3. Save it directly to the key (e.g., users/uid/Kopi)
+            // This replaces the old "true" value with this new object
+            await dbRef.Child("users").Child(uid).Child(sceneName).SetValueAsync(dishData);
         }
         catch (System.Exception e)
         {
@@ -169,10 +200,21 @@ public class FirebaseManager : MonoBehaviour
                 foreach (var childSnapshot in snapshot.Children)
                 {
                     string key = childSnapshot.Key;
-                    if (key != "progress" && key != "email" && key != "createdAt")
+                    
+                    // Ignore metadata keys
+                    if (key != "progress" && key != "email" && key != "createdAt" && key != "lastLogin")
                     {
+                        // CASE 1: Old Format ("Kopi": true)
                         if (childSnapshot.Value is bool sceneBool)
+                        {
                             completedScenes[key] = sceneBool;
+                        }
+                        // CASE 2: New Format ("Kopi": { "completed": true, ... })
+                        else if (childSnapshot.HasChild("completed"))
+                        {
+                            bool isComplete = (bool)childSnapshot.Child("completed").Value;
+                            completedScenes[key] = isComplete;
+                        }
                     }
                 }
 
@@ -205,14 +247,13 @@ public class FirebaseManager : MonoBehaviour
     {
         return user?.Email ?? "Not logged in";
     }
+
     public async void UpdateUserProgress(int newProgress)
     {
         CurrentProgress = newProgress;
         
-        // Notify listeners (updates UI)
         OnProgressUpdated?.Invoke(CurrentProgress, TotalDishes);
 
-        // Save to Firebase
         if (user != null && dbRef != null)
         {
             try

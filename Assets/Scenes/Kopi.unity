@@ -5175,8 +5175,6 @@ MonoBehaviour:
   placeablePrefabs:
   - {fileID: 1937107817685762190, guid: 9ef869ac493acf54098da3b1977ea8c0, type: 3}
   - {fileID: 1371822133766976658, guid: b5098338259164f4fa2678880225a1e1, type: 3}
-  - {fileID: 7130456461827427498, guid: b0fe9086bcf83204d980c8e7f311e548, type: 3}
-  - {fileID: 2338574538377434111, guid: 028cb5e29cb458f4cad68ad7da0263e2, type: 3}
 --- !u!114 &1290408836
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -288,16 +288,22 @@ public class MenuUIManager : MonoBehaviour
 
         UpdateStatus(signupStatusText, "Creating account...", Color.yellow);
 
-        bool success = await FirebaseManager.Instance.SignUpAsync(email, password);
+        // --- CHANGE STARTS HERE ---
         
-        if (success)
+        // 1. Capture the result as a string (message), not a bool
+        string resultMessage = await FirebaseManager.Instance.SignUpAsync(email, password);
+        
+        // 2. Check if the message is empty (Empty string "" means Success in our new system)
+        if (resultMessage == "") 
         {
             UpdateStatus(signupStatusText, "Account created! Please log in.", Color.green);
             ShowPanel(loginPanel);
         }
         else
         {
-            UpdateStatus(signupStatusText, "Signup failed", Color.red);
+            // 3. If it's not empty, it contains the error (e.g., "Password too short")
+            // Display exactly what Firebase or our check returned!
+            UpdateStatus(signupStatusText, resultMessage, Color.red);
         }
     }
 

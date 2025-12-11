@@ -2,11 +2,14 @@ using UnityEngine;
 
 /// <summary>
 /// Handles the interaction between a Knife and Bread.
-/// Uses a timer in OnTriggerStay to require the player to "spread" for a set duration
-/// before switching the model from Plain Bread to Buttered Toast.
+/// Checks Firebase on Start to see if this step is already done.
 /// </summary>
 public class BreadTrigger : MonoBehaviour
 {
+    [Header("Firebase Settings")]
+    [Tooltip("The name of this dish as it should appear in the Database (e.g., 'Toast', 'KayaToast').")]
+    public string dishName = "Toast"; 
+
     [Header("Bread Visuals")]
     [Tooltip("The model representing the plain, unbuttered bread.")]
     public GameObject plainBreadModel;
@@ -45,11 +48,7 @@ public class BreadTrigger : MonoBehaviour
             return;
         }
 
-        // Ensure correct starting state
-        plainBreadModel.SetActive(true);
-        butteredToastModel.SetActive(false);
-
-        // FIX: CS0618 - Replaced FindObjectOfType with FindFirstObjectByType
+        // FIX: Replaced FindObjectOfType with FindFirstObjectByType
         if (toastUI == null)
             toastUI = Object.FindFirstObjectByType<ToastUIManager>();
         
@@ -58,17 +57,34 @@ public class BreadTrigger : MonoBehaviour
     }
 
     /// <summary>
-    /// Locates the Knife script if not assigned.
+    /// Locates the Knife script and CHECKS FIREBASE HISTORY.
     /// </summary>
     private void Start()
     {
+        // 1. Locate Knife if missing
         if (knife == null)
         {
-            // FIX: CS0618 - Replaced FindObjectOfType with FindFirstObjectByType
             knife = Object.FindFirstObjectByType<KnifeSpread>();
+            if (knife == null) Debug.LogError("KnifeSpread component not found in the scene!");
+        }
+
+        // 2. CHECK FIREBASE HISTORY (The new part!)
+        // If Firebase says we already finished "Toast", update visuals immediately.
+        if (FirebaseManager.Instance != null && FirebaseManager.Instance.IsSceneCompleted(dishName))
+        {
+            stepCompleted = true; // Lock step so we can't do it again
             
-            if (knife == null)
-                Debug.LogError("KnifeSpread component not found in the scene!");
+            // Force visuals to "Done" state
+            if (plainBreadModel != null) plainBreadModel.SetActive(false);
+            if (butteredToastModel != null) butteredToastModel.SetActive(true);
+            
+            Debug.Log($"🍞 Firebase says {dishName} is already done! Loading Toast model.");
+        }
+        else
+        {
+            // Ensure correct starting state (Plain Bread)
+            if (plainBreadModel != null) plainBreadModel.SetActive(true);
+            if (butteredToastModel != null) butteredToastModel.SetActive(false);
         }
     }
 
@@ -76,7 +92,6 @@ public class BreadTrigger : MonoBehaviour
     /// Checks every frame the knife is inside the bread trigger.
     /// Increments a timer; if timer > spreadCompletionTime, completes the step.
     /// </summary>
-    /// <param name="other">The collider inside the trigger.</param>
     private void OnTriggerStay(Collider other)
     {
         // Ignore if step is already done or knife is missing
@@ -93,25 +108,43 @@ public class BreadTrigger : MonoBehaviour
             // 3. Check if spreading is complete
             if (timer >= spreadCompletionTime)
             {
-                stepCompleted = true;
-
-                // Switch models
-                if (plainBreadModel != null) plainBreadModel.SetActive(false);
-                if (butteredToastModel != null) butteredToastModel.SetActive(true);
-
-                // Update UI
-                toastUI?.ShowCongrats();       // Show local success UI
-                progressUI?.CompleteStep();    // Update global progress
-
-                Debug.Log("Bread switched and UI managers updated!");
+                CompleteStep();
             }
         }
     }
 
     /// <summary>
+    /// Helper method to handle all completion logic (Visuals, UI, and Firebase).
+    /// </summary>
+    private void CompleteStep()
+    {
+        stepCompleted = true;
+
+        // --- 1. Visuals: Switch models ---
+        if (plainBreadModel != null) plainBreadModel.SetActive(false);
+        if (butteredToastModel != null) butteredToastModel.SetActive(true);
+
+        // --- 2. UI: Update Interfaces ---
+        toastUI?.ShowCongrats();       // Show local success UI
+        progressUI?.CompleteStep();    // Update global progress
+
+        // --- 3. Firebase: Save Data ---
+        if (FirebaseManager.Instance != null)
+        {
+            // We pass the dishName ("Toast") and the timer duration as 'timeTaken'
+            FirebaseManager.Instance.MarkDishComplete(dishName, timer);
+        }
+        else
+        {
+            Debug.LogWarning("FirebaseManager Instance not found. Progress not saved to cloud.");
+        }
+
+        Debug.Log("Bread switched, UI updated, and Firebase notified!");
+    }
+
+    /// <summary>
     /// Resets the spreading action if the knife leaves before the timer finishes.
     /// </summary>
-    /// <param name="other">The collider exiting the trigger.</param>
     private void OnTriggerExit(Collider other)
     {
         if (other.CompareTag("Knife") && !stepCompleted)

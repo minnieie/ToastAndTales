@@ -23,22 +23,19 @@ public class UIManager : MonoBehaviour
     public GameObject introPanel;
 
     [Header("Feedback")]
-    [Tooltip("Text element used to show temporary status messages (e.g., 'Scan the bread').")]
     public TextMeshProUGUI feedbackText; 
 
     [Header("Progress Tracking")]
-    [Tooltip("Text element displaying the current step count (e.g., '1/3').")]
     public TextMeshProUGUI progressText; 
     
     // Internal state tracking
     private int currentStep = 0;
     private readonly int totalSteps = 3; 
+    private float lastStepTime = 0f;
 
     [Header("Home Button")]
-    [Tooltip("The button to return to the Main Menu.")]
     public Button homeButton; 
-    
-    [Tooltip("The exact name of the menu scene to load.")]
+
     public string homeSceneName = "Home";
 
     /// <summary>
@@ -144,22 +141,33 @@ public class UIManager : MonoBehaviour
     /// Called by interaction scripts (e.g., CupPourTrigger, TraySwapTrigger).
     /// </summary>
     public void CompleteStep()
-    {
-        currentStep = Mathf.Clamp(currentStep + 1, 0, totalSteps);
-        UpdateProgressText();
-
-        // Save progress to Firebase
-        if (FirebaseManager.Instance != null)
         {
-            FirebaseManager.Instance.UpdateUserProgress(currentStep); 
-        }
+            // 1. SECURITY CHECK: Has it been less than 1 second since the last step?
+            if (Time.time < lastStepTime + 1.0f) 
+            {
+                Debug.LogWarning( "Blocked a double-step call! (Debounce active)");
+                return; 
+            }
 
-        if (currentStep == totalSteps)
-        {
-            Debug.Log("All tasks complete!");
-            // Note: Victory Logic is handled by GameCompletion.cs or external listeners
+            // 2. Update the timestamp
+            lastStepTime = Time.time;
+
+            // 3. Increment step and update UI
+            currentStep = Mathf.Clamp(currentStep + 1, 0, totalSteps);
+            UpdateProgressText();
+            Debug.Log($"Step Accepted. New Progress: {currentStep}/{totalSteps}");
+
+            // Save progress to Firebase
+            if (FirebaseManager.Instance != null)
+            {
+                FirebaseManager.Instance.UpdateUserProgress(currentStep); 
+            }
+
+            if (currentStep == totalSteps)
+            {
+                Debug.Log("All tasks complete!");
+            }
         }
-    }
 
     /// <summary>
     /// Updates the text display (e.g., "1/3").
