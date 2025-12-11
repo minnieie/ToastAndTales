@@ -1903,7 +1903,7 @@ GameObject:
   - component: {fileID: 508327703}
   - component: {fileID: 508327702}
   m_Layer: 5
-  m_Name: Filter Button
+  m_Name: Play Button (1)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -5899,10 +5899,6 @@ MonoBehaviour:
     sceneName: Kopi
   - button: {fileID: 1566586321}
     sceneName: Toast
-  - button: {fileID: 1206265648}
-    sceneName: Tray
-  - button: {fileID: 508327702}
-    sceneName: ARFilter
 --- !u!1 &1566586319
 GameObject:
   m_ObjectHideFlags: 0

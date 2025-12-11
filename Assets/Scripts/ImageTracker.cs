@@ -36,7 +36,7 @@ public class ImageTracker : MonoBehaviour
         foreach (GameObject prefab in placeablePrefabs)
         {
             GameObject newPrefab = Instantiate(prefab);
-            newPrefab.name = prefab.name;
+            newPrefab.name = prefab.name;     // cup / Toast / Tray
             newPrefab.SetActive(false);
 
             spawnedPrefabs.Add(prefab.name, newPrefab);
@@ -46,29 +46,29 @@ public class ImageTracker : MonoBehaviour
 
     void OnImageChanged(ARTrackablesChangedEventArgs<ARTrackedImage> eventArgs)
     {
-        // Handle newly detected images
+        // Added images
         foreach (ARTrackedImage trackedImage in eventArgs.added)
         {
             if (trackedImage != null)
                 UpdateImage(trackedImage);
         }
 
-        // Handle updated tracking state
+        // Updated images
         foreach (ARTrackedImage trackedImage in eventArgs.updated)
         {
             if (trackedImage != null)
                 UpdateImage(trackedImage);
         }
 
-        // Handle removed images separately - removed returns KeyValuePairs
+        // Removed images
         foreach (var removedPair in eventArgs.removed)
         {
             ARTrackedImage trackedImage = removedPair.Value;
-            // Don't try to access the destroyed trackedImage
-            // Just deactivate prefabs based on their known state
+
             if (trackedImage != null && trackedImage.referenceImage != null)
             {
                 string imageName = trackedImage.referenceImage.name;
+
                 if (spawnedPrefabs.TryGetValue(imageName, out GameObject prefab))
                 {
                     prefab.SetActive(false);
@@ -83,33 +83,46 @@ public class ImageTracker : MonoBehaviour
         if (trackedImage == null || trackedImage.referenceImage == null)
             return;
 
-        string imageName = trackedImage.referenceImage.name;
+        string imageName = trackedImage.referenceImage.name;  // cup / Toast / Tray
 
         if (!spawnedPrefabs.ContainsKey(imageName))
             return;
 
         GameObject prefab = spawnedPrefabs[imageName];
 
-        // **Check if prefab was destroyed**
+        // Safety check
         if (prefab == null)
         {
-            // Remove from dictionary so we don't try again
             spawnedPrefabs.Remove(imageName);
             return;
         }
 
+        // tray should only spawn AFTER cup + Toast (2 steps total)
+        if (imageName == "fullset")
+        {
+            int step = UIManager.Instance.GetCurrentStep();
+
+            if (step < 2)
+            {
+                prefab.SetActive(false);
+                UIManager.Instance.ShowMessage("Finish Kopi and Toast first!");
+                return;
+            }
+        }
+
         if (trackedImage.trackingState == TrackingState.Tracking)
         {
-            // Attach prefab to tracked image transform
             if (prefab.transform.parent != trackedImage.transform)
             {
                 prefab.transform.SetParent(trackedImage.transform);
+
                 if (prefabDefaults.ContainsKey(prefab))
                 {
                     prefab.transform.localPosition = prefabDefaults[prefab].transform.localPosition;
                     prefab.transform.localRotation = prefabDefaults[prefab].transform.localRotation;
                 }
             }
+
             prefab.SetActive(true);
         }
         else
@@ -118,5 +131,4 @@ public class ImageTracker : MonoBehaviour
             prefab.transform.SetParent(null);
         }
     }
-
 }

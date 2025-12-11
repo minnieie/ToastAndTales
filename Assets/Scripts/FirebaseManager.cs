@@ -205,4 +205,25 @@ public class FirebaseManager : MonoBehaviour
     {
         return user?.Email ?? "Not logged in";
     }
+    public async void UpdateUserProgress(int newProgress)
+    {
+        CurrentProgress = newProgress;
+        
+        // Notify listeners (updates UI)
+        OnProgressUpdated?.Invoke(CurrentProgress, TotalDishes);
+
+        // Save to Firebase
+        if (user != null && dbRef != null)
+        {
+            try
+            {
+                await dbRef.Child("users").Child(user.UserId).Child("progress").SetValueAsync(CurrentProgress);
+                Debug.Log($"Progress updated to {CurrentProgress}");
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError($"Failed to update progress: {e.Message}");
+            }
+        }
+    }
 }

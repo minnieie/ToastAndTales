@@ -8,17 +8,38 @@ using UnityEngine.XR.ARFoundation;
 
 public class UIManager : MonoBehaviour
 {
+    public static UIManager Instance { get; private set; }
+
     [Header("UI Panels")]
     public GameObject introPanel;
+
+    // Add a UI element to display messages (optional but recommended for ShowMessage)
+    [Header("Feedback")]
+    public TextMeshProUGUI feedbackText; 
 
     [Header("Progress Tracking")]
     public TextMeshProUGUI progressText; // Shows "1/3", "2/3", etc.
     private int currentStep = 0;
-    private int totalSteps = 3;
+    private readonly int totalSteps = 3; // Changed to readonly for consistency
 
     [Header("Home Button")]
-    public Button homeButton; // Optional: can assign in Inspector
+    public Button homeButton; 
     public string homeSceneName = "Home";
+
+    private void Awake()
+    {
+        // Singleton setup
+        if (Instance != null && Instance != this)
+        {
+            Destroy(gameObject); 
+            Debug.LogWarning("Duplicate UIManager detected. Destroying new instance.");
+        }
+        else
+        {
+            Instance = this;
+            // DontDestroyOnLoad(gameObject); // Uncomment if you want it to persist across scenes
+        }
+    }
 
     private void Start()
     {
@@ -96,13 +117,14 @@ public class UIManager : MonoBehaviour
         // Save progress to Firebase
         if (FirebaseManager.Instance != null)
         {
-            string sceneName = SceneManager.GetActiveScene().name;
-            FirebaseManager.Instance.MarkDishComplete(sceneName);
+            // Assuming your FirebaseManager has a method to update the step count
+            FirebaseManager.Instance.UpdateUserProgress(currentStep); 
         }
 
         if (currentStep == totalSteps)
         {
             Debug.Log("All tasks complete!");
+            // TODO: Trigger reward/end game logic
         }
     }
 
@@ -130,6 +152,28 @@ public class UIManager : MonoBehaviour
             introPanel.SetActive(false);
         }
     }
+    
+    /// <summary>
+    /// Displays a temporary message to the user for feedback (used by ImageTracker).
+    /// </summary>
+    public void ShowMessage(string message)
+    {
+        if (feedbackText != null)
+        {
+            feedbackText.text = message;
+            CancelInvoke(nameof(ClearMessage));
+            Invoke(nameof(ClearMessage), 3f);
+        }
+        Debug.Log($"[UI Feedback] {message}");
+    }
+
+    private void ClearMessage()
+    {
+        if (feedbackText != null)
+        {
+            feedbackText.text = string.Empty;
+        }
+    }
 
     /// <summary>
     /// Stop AR subsystems before leaving AR scene
@@ -140,8 +184,8 @@ public class UIManager : MonoBehaviour
 
         if (xrManager.isInitializationComplete)
         {
-            xrManager.StopSubsystems();       // Stop cameras, tracked images, planes, etc.
-            xrManager.DeinitializeLoader();   // Fully deinitialize AR subsystems
+            xrManager.StopSubsystems(); 
+            xrManager.DeinitializeLoader(); 
             Debug.Log("AR session stopped and deinitialized.");
         }
     }
@@ -149,7 +193,7 @@ public class UIManager : MonoBehaviour
     private void GoToHomeScene()
     {
         Debug.Log($"Going to home scene: {homeSceneName}");
-        CancelInvoke(); // Cancel any pending invokes
+        CancelInvoke(); 
 
         // Stop AR session before leaving scene
         StopARSession();
@@ -162,6 +206,11 @@ public class UIManager : MonoBehaviour
         {
             Debug.LogError("Home scene name is not set in UIManager!");
         }
+    }
+
+    public int GetCurrentStep()
+    {
+        return currentStep;
     }
 
     public void SetProgress(int step)

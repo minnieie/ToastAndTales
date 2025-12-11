@@ -1,87 +1,125 @@
 using UnityEngine;
 
+/// <summary>
+/// Handles the interaction between a Knife and Bread.
+/// Uses a timer in OnTriggerStay to require the player to "spread" for a set duration
+/// before switching the model from Plain Bread to Buttered Toast.
+/// </summary>
 public class BreadTrigger : MonoBehaviour
 {
-    [Header("Bread Models")]
-    public GameObject plainBreadModel;     
-    public GameObject butteredToastModel;  
+    [Header("Bread Visuals")]
+    [Tooltip("The model representing the plain, unbuttered bread.")]
+    public GameObject plainBreadModel;
 
-    [Header("Knife")]
+    [Tooltip("The model representing the finished buttered toast.")]
+    public GameObject butteredToastModel;
+
+    [Header("Interaction References")]
+    [Tooltip("Reference to the Knife script that handles spreading particles/animation.")]
     public KnifeSpread knife;
 
     [Header("UI Managers")]
-    public ToastUIManager toastUI;    // Updates text and shows button
-    public UIManager progressUI;      // Updates overall progress steps
+    [Tooltip("UI Manager specific to the Toast interaction (shows 'Next' button).")]
+    public ToastUIManager toastUI;
 
-    [Header("Timing")]
-    public float spreadCompletionTime = 1f; // Time in seconds before bread switches
+    [Tooltip("Main UI Manager that tracks the overall game steps (1/3, 2/3, etc.).")]
+    public UIManager progressUI;
 
+    [Header("Configuration")]
+    [Tooltip("How many seconds the knife must stay inside the trigger to finish spreading.")]
+    public float spreadCompletionTime = 1f;
+
+    // Internal state tracking
     private bool stepCompleted = false;
     private float timer = 0f;
 
+    /// <summary>
+    /// Initializes state and locates UI managers if not manually assigned.
+    /// </summary>
     private void Awake()
     {
+        // Validation check for models
         if (plainBreadModel == null || butteredToastModel == null)
         {
-            Debug.LogError("Bread models not assigned!");
+            Debug.LogError("Bread models not assigned in Inspector!");
             return;
         }
 
+        // Ensure correct starting state
         plainBreadModel.SetActive(true);
         butteredToastModel.SetActive(false);
 
-        // Find UI managers if not assigned
+        // FIX: CS0618 - Replaced FindObjectOfType with FindFirstObjectByType
         if (toastUI == null)
-            toastUI = FindObjectOfType<ToastUIManager>();
+            toastUI = Object.FindFirstObjectByType<ToastUIManager>();
+        
         if (progressUI == null)
-            progressUI = FindObjectOfType<UIManager>();
+            progressUI = Object.FindFirstObjectByType<UIManager>();
     }
 
+    /// <summary>
+    /// Locates the Knife script if not assigned.
+    /// </summary>
     private void Start()
     {
         if (knife == null)
         {
-            knife = FindObjectOfType<KnifeSpread>();
+            // FIX: CS0618 - Replaced FindObjectOfType with FindFirstObjectByType
+            knife = Object.FindFirstObjectByType<KnifeSpread>();
+            
             if (knife == null)
-                Debug.LogError("KnifeSpread component not found!");
+                Debug.LogError("KnifeSpread component not found in the scene!");
         }
     }
 
+    /// <summary>
+    /// Checks every frame the knife is inside the bread trigger.
+    /// Increments a timer; if timer > spreadCompletionTime, completes the step.
+    /// </summary>
+    /// <param name="other">The collider inside the trigger.</param>
     private void OnTriggerStay(Collider other)
     {
+        // Ignore if step is already done or knife is missing
         if (stepCompleted || knife == null) return;
 
         if (other.CompareTag("Knife"))
         {
-            // Activate spreading visuals
+            // 1. Activate spreading visuals (particles/trails)
             knife.StartSpreading();
 
-            // Increase timer while knife is inside
+            // 2. Increase timer
             timer += Time.deltaTime;
 
+            // 3. Check if spreading is complete
             if (timer >= spreadCompletionTime)
             {
                 stepCompleted = true;
 
-                // Switch bread models
+                // Switch models
                 if (plainBreadModel != null) plainBreadModel.SetActive(false);
                 if (butteredToastModel != null) butteredToastModel.SetActive(true);
 
                 // Update UI
-                toastUI?.ShowCongrats();        // Update toast-specific text/button
-                progressUI?.CompleteStep();      // Increment overall progress
+                toastUI?.ShowCongrats();       // Show local success UI
+                progressUI?.CompleteStep();    // Update global progress
 
                 Debug.Log("Bread switched and UI managers updated!");
             }
         }
     }
 
+    /// <summary>
+    /// Resets the spreading action if the knife leaves before the timer finishes.
+    /// </summary>
+    /// <param name="other">The collider exiting the trigger.</param>
     private void OnTriggerExit(Collider other)
     {
         if (other.CompareTag("Knife") && !stepCompleted)
         {
-            knife.StopSpreading();
-            timer = 0f; // reset timer if knife leaves
+            if (knife != null)
+                knife.StopSpreading();
+                
+            timer = 0f; // Reset progress if they pull away too early
         }
     }
 }
