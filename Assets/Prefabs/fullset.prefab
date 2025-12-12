@@ -322,13 +322,16 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: '"Why does Ya Kun Kopi taste so distinct? In the 1940s, Ah Koon roasted
-    coffee beans over firewood at the back of his stall.
+  m_text: 'Brewed. Spread. Served.
+
+    
+
+    You have successfully recreated the
+    legendary Ya Kun Value Set Meal. Ah Koon would be proud of your speed and precision!
 
 
-    He added margarine
-    and sugar during roasting to caramelize the beans. This created the glossy, aromatic,
-    and full-bodied ''Nanyang Kopi'' we love today!"'
+    Check
+    your profile on the web to see your achievements and badges!'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -464,7 +467,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Unlock the Secret
+  m_text: Close
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -896,7 +899,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 4ba26e1cc36e8854c8bef64f7d4c2144, type: 3}
+  m_Sprite: {fileID: 21300000, guid: b20fa75a9522336478c7f510daea7249, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -971,7 +974,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: The Secret Roast
+  m_text: Congratulations!
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
