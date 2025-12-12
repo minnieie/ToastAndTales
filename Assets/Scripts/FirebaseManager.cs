@@ -23,18 +23,18 @@ public class FirebaseManager : MonoBehaviour
     private Dictionary<string, bool> completedScenes = new Dictionary<string, bool>();
 
     private void Awake()
-    {
-        if (Instance != null && Instance != this)
         {
-            Debug.LogWarning($"Destroying duplicate FirebaseManager on {gameObject.name}");
-            DestroyImmediate(gameObject);
-            return;
+            // STRICT CHECK: If a manager already exists, kill THIS new one immediately.
+            if (Instance != null && Instance != this)
+            {
+                Destroy(gameObject); // Kill the imposter
+                return; // Stop running any more code
+            }
+
+            // If I am the first one, I am the King.
+            Instance = this;
+            DontDestroyOnLoad(gameObject);
         }
-
-        Instance = this;
-        DontDestroyOnLoad(gameObject); // Keep singleton alive across scenes
-    }
-
     private async void Start()
     {
         await InitializeFirebase();

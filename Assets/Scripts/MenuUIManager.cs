@@ -48,6 +48,7 @@ public class MenuUIManager : MonoBehaviour
     [Header("Start Panel UI")]
     public Button storyButton;
     public Button startJourneyButton;
+    public Button arFilterButton;
     public Button logoutButton;
     public TextMeshProUGUI welcomeText;
 
@@ -99,7 +100,7 @@ public class MenuUIManager : MonoBehaviour
             ShowPanel(loginPanel);
         }
     }
-    
+
     /// <summary>
     /// Plays the button click sound effect via AudioManager.
     /// </summary>
@@ -160,6 +161,12 @@ public class MenuUIManager : MonoBehaviour
         {
             startJourneyButton.onClick.AddListener(PlayUISound);
             startJourneyButton.onClick.AddListener(() => menuPanel.SetActive(true));
+        }
+
+        if (arFilterButton) 
+        {
+            arFilterButton.onClick.AddListener(PlayUISound); 
+            arFilterButton.onClick.AddListener(() => LoadARScene("ARFilter", 0)); 
         }
 
         if (historyBackButton) 
