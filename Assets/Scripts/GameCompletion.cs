@@ -66,7 +66,13 @@ public class GameCompletion : MonoBehaviour
         if (currentProgress >= targetSteps)
         {
             Debug.Log("Target Reached! Showing Victory Screen.");
-            
+
+            // Play Victory Sound
+            if (AudioManager.Instance != null)
+            {
+                AudioManager.Instance.PlayVictorySound();
+            }
+
             // Add a 1-second delay so the UI doesn't pop up instantly, feeling more natural
             Invoke(nameof(ShowPanel), 1.0f);
         }

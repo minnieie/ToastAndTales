@@ -99,6 +99,17 @@ public class MenuUIManager : MonoBehaviour
             ShowPanel(loginPanel);
         }
     }
+    
+    /// <summary>
+    /// Plays the button click sound effect via AudioManager.
+    /// </summary>
+    private void PlayUISound()
+    {
+        if (AudioManager.Instance != null)
+        {
+            AudioManager.Instance.PlayButtonClick();
+        }
+    }
 
     /// <summary>
     /// Attaches click listeners to all buttons in the scene.
@@ -107,17 +118,61 @@ public class MenuUIManager : MonoBehaviour
     private void BindButtons()
     {
         // Authentication buttons
-        if (loginButton) loginButton.onClick.AddListener(OnLoginClicked);
-        if (signupButton) signupButton.onClick.AddListener(OnSignupClicked);
-        if (gotoSignupButton) gotoSignupButton.onClick.AddListener(() => ShowPanel(signupPanel));
-        if (gotoLoginButton) gotoLoginButton.onClick.AddListener(() => ShowPanel(loginPanel));
-        if (logoutButton) logoutButton.onClick.AddListener(OnLogoutClicked);
+        // Authentication buttons
+        if (loginButton) 
+        {
+            loginButton.onClick.AddListener(PlayUISound); 
+            loginButton.onClick.AddListener(OnLoginClicked);
+        }
+
+        if (signupButton) 
+        {
+            signupButton.onClick.AddListener(PlayUISound); 
+            signupButton.onClick.AddListener(OnSignupClicked);
+        }
+
+        if (gotoSignupButton) 
+        {
+            gotoSignupButton.onClick.AddListener(PlayUISound);
+            gotoSignupButton.onClick.AddListener(() => ShowPanel(signupPanel));
+        }
+
+        if (gotoLoginButton) 
+        {
+            gotoLoginButton.onClick.AddListener(PlayUISound); 
+            gotoLoginButton.onClick.AddListener(() => ShowPanel(loginPanel));
+        }
+
+        if (logoutButton) 
+        {
+            logoutButton.onClick.AddListener(PlayUISound); 
+            logoutButton.onClick.AddListener(OnLogoutClicked);
+        }
         
         // Navigation buttons
-        if (storyButton) storyButton.onClick.AddListener(() => ShowPanel(historyPanel));
-        if (startJourneyButton) startJourneyButton.onClick.AddListener(() => menuPanel.SetActive(true));
-        if (historyBackButton) historyBackButton.onClick.AddListener(() => ShowPanel(startPanel));
-        if (menuBackButton) menuBackButton.onClick.AddListener(() => menuPanel.SetActive(false));
+        if (storyButton) 
+        {
+            storyButton.onClick.AddListener(PlayUISound); 
+            storyButton.onClick.AddListener(() => ShowPanel(historyPanel));
+        }
+
+        if (startJourneyButton) 
+        {
+            startJourneyButton.onClick.AddListener(PlayUISound);
+            startJourneyButton.onClick.AddListener(() => menuPanel.SetActive(true));
+        }
+
+        if (historyBackButton) 
+        {
+            historyBackButton.onClick.AddListener(PlayUISound); 
+            historyBackButton.onClick.AddListener(() => ShowPanel(startPanel));
+        }
+
+        if (menuBackButton) 
+        {
+            menuBackButton.onClick.AddListener(PlayUISound); 
+            menuBackButton.onClick.AddListener(() => menuPanel.SetActive(false));
+        }
 
         // AR Scene buttons with Logic Check
         if (arSceneButtons != null)
@@ -127,7 +182,11 @@ public class MenuUIManager : MonoBehaviour
                 if (mapping.button != null && !string.IsNullOrEmpty(mapping.sceneName))
                 {
                     mapping.button.onClick.RemoveAllListeners();
-                    // Pass the required progress to the load function
+                    
+                    // Add the Sound Listener
+                    mapping.button.onClick.AddListener(PlayUISound); 
+                    
+                    // Add the Logic Listener
                     mapping.button.onClick.AddListener(() => LoadARScene(mapping.sceneName, mapping.requiredProgress));
                 }
             }

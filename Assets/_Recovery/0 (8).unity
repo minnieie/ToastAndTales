@@ -6138,7 +6138,7 @@ AudioSource:
   m_audioClip: {fileID: 0}
   m_Resource: {fileID: 8300000, guid: 24d631dcf47e8d64ebba5c8ee697f411, type: 3}
   m_PlayOnAwake: 1
-  m_Volume: 0.636
+  m_Volume: 1
   m_Pitch: 1
   Loop: 1
   Mute: 0
@@ -6254,12 +6254,6 @@ MonoBehaviour:
   coffeePourClip: {fileID: 8300000, guid: df876070adde2ea4495907878e748433, type: 3}
   traySwapClip: {fileID: 8300000, guid: 36faa7d9564ef6e48808be2c29847ff4, type: 3}
   toastSpreadClip: {fileID: 8300000, guid: 54362310282f249428595e1b26cfec76, type: 3}
-  buttonClickClip: {fileID: 8300000, guid: 3db593ab96e32c84180ef765db7822c8, type: 3}
-  victoryClip: {fileID: 8300000, guid: 2ff58244359628344bb17fb3cb4cf508, type: 3}
-  buttonClickVolume: 0.382
-  victoryVolume: 0.5
-  traySwapVolume: 1
-  coffeePourVolume: 0.5
 --- !u!82 &1590628040
 AudioSource:
   m_ObjectHideFlags: 0

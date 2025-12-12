@@ -72,6 +72,17 @@ public class UIManager : MonoBehaviour
     }
 
     /// <summary>
+    /// Plays the button click sound effect via AudioManager.
+    /// </summary>
+    private void PlayUISound()
+    {
+        if (AudioManager.Instance != null)
+        {
+            AudioManager.Instance.PlayButtonClick();
+        }
+    }
+
+    /// <summary>
     /// Locates the Home Button in the scene if not assigned manually.
     /// </summary>
     private void AssignButtons()
@@ -90,6 +101,7 @@ public class UIManager : MonoBehaviour
         if (homeButton != null)
         {
             homeButton.onClick.RemoveAllListeners();
+            homeButton.onClick.AddListener(PlayUISound);
             homeButton.onClick.AddListener(GoToHomeScene);
             Debug.Log("Home button listener assigned.");
         }
