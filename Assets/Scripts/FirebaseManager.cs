@@ -36,11 +36,10 @@ public class FirebaseManager : MonoBehaviour
         // STRICT CHECK: If a manager already exists, kill THIS new one immediately.
         if (Instance != null && Instance != this)
         {
-            Destroy(gameObject); // Kill the imposter
+            Destroy(gameObject); 
             return; // Stop running any more code
         }
-
-        // If I am the first one, I am the King.
+        
         Instance = this;
         DontDestroyOnLoad(gameObject);
     }
