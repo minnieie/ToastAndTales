@@ -1,7 +1,7 @@
 # Toast & Tales
 
 A Heritage AR Experience for Ya Kun Kaya Toast <br>
-Developers: Ruimin & Baihui
+Developers: Toh Rui Min & Geng Bai Hui
 
 ## 1. Project Overview
 
@@ -21,10 +21,12 @@ Toast & Tales is an Augmented Reality (AR) mobile game designed to rejuvenate in
 ## 3. How to Install & Run
 
 1. **Install**: Download the .apk file from GitHub and transfer the .apk file to your Android device and install it (ensure "Install from Unknown Sources" is enabled).
-2. **Prepare Markers**: Have the 3 target images ready (displayed on a computer/phone screen or printed on paper).
+2. **Prepare Markers**: Have the 5 target images ready (displayed on a computer/phone screen or printed on paper).
    - _Marker 1_: Kopi Photo
-   - _Marker 2_: Kaya Toast Photo
-   - _Marker 3_: Full Set Meal Photo
+   - _Marker 2: Kettle Photo
+   - _Marker 3_: Kaya Toast Photo
+   - _Marker 4_: Knife Photo
+   - _Marker 5_: Full Set Meal Photo
 3. **Lauch**: Open the Toast & Tales app.
 
 ## 4. Walkthrough & Controls
@@ -92,6 +94,8 @@ Select a dish from the menu. Point your camera at the matching marker to begin.
   - _Water Pouring_ by Pixabay [https://pixabay.com/sound-effects/water-pouring-405458/]
   - _Cream/Sizzle_ by Pixabay [https://pixabay.com/sound-effects/cream-90275/]
   - _Object Place_ by Pixabay [https://pixabay.com/sound-effects/put-things-on-table-415924/]
+  - Victory by Pixabay [https://pixabay.com/sound-effects/orchestral-win-331233/]
+  - Button Click by Pixabay [https://pixabay.com/sound-effects/bubble-pop-06-351337/]
 
 ### 3D Models
 
