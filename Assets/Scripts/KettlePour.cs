@@ -1,5 +1,9 @@
 using UnityEngine;
 
+/// <summary>
+/// Controls the kettle pouring mechanic, including visual rotation, particle effects, 
+/// UI instructions, and tracking the pour progress.
+/// </summary>
 public class KettlePour : MonoBehaviour
 {
     [Header("Visuals")]
@@ -20,6 +24,9 @@ public class KettlePour : MonoBehaviour
     private Quaternion originalRot;
     private float currentPourProgress = 0f;
 
+    /// <summary>
+    /// Initializes the kettle's state, storing the original rotation and setting initial UI visibility.
+    /// </summary>
     void Start()
     {
         originalRot = kettleBody.localRotation;
@@ -33,6 +40,9 @@ public class KettlePour : MonoBehaviour
             pourEffect.SetActive(false);
     }
 
+    /// <summary>
+    /// Begins the pouring action. Updates state flags and toggles relevant UI/effects.
+    /// </summary>
     public void StartPouring()
     {
         isPouring = true;
@@ -46,6 +56,9 @@ public class KettlePour : MonoBehaviour
             pourEffect.SetActive(true);
     }
 
+    /// <summary>
+    /// Stops the pouring action and disables visual effects.
+    /// </summary>
     public void StopPouring()
     {
         isPouring = false;
@@ -55,6 +68,9 @@ public class KettlePour : MonoBehaviour
             pourEffect.SetActive(false);
     }
 
+    /// <summary>
+    /// Handles the per-frame logic for rotating the kettle and accumulating pour progress.
+    /// </summary>
     void Update()
     {
         if (isPouring)
@@ -74,13 +90,18 @@ public class KettlePour : MonoBehaviour
         }
     }
 
-    // Returns pour percentage (0-1)
+    /// <summary>
+    /// Retrieves the current progress of the pour.
+    /// </summary>
+    /// <returns>A float value between 0.0 (empty) and 1.0 (full).</returns>
     public float GetPourPercentage()
     {
         return currentPourProgress;
     }
 
-    // Reset pour progress (if needed)
+    /// <summary>
+    /// Resets the pouring progress, visual rotation, and UI state to their initial values.
+    /// </summary>
     public void ResetPour()
     {
         currentPourProgress = 0f;

@@ -2,6 +2,10 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 
+/// <summary>
+/// Manages the User Interface for the toast spreading application.
+/// Handles the display of status text and the visibility of the history panel.
+/// </summary>
 public class ToastUIManager : MonoBehaviour
 {
     [Header("UI Elements")]
@@ -9,6 +13,10 @@ public class ToastUIManager : MonoBehaviour
     public Button historyButton;         // Button to toggle history
     public GameObject historyPanel;      // Panel that already contains text
 
+    /// <summary>
+    /// Initializes the UI state. Sets the initial instruction text, hides the history elements, 
+    /// and assigns the click listener to the history button.
+    /// </summary>
     private void Start()
     {
         if (statusText != null)
@@ -25,6 +33,10 @@ public class ToastUIManager : MonoBehaviour
             historyButton.onClick.AddListener(ToggleHistory);
     }
 
+    /// <summary>
+    /// Updates the UI to indicate the task is finished.
+    /// Changes the status text to a congratulatory message and reveals the history button.
+    /// </summary>
     public void ShowCongrats()
     {
         if (statusText != null)
@@ -35,6 +47,9 @@ public class ToastUIManager : MonoBehaviour
             historyButton.gameObject.SetActive(true);
     }
 
+    /// <summary>
+    /// Toggles the active state (visibility) of the history panel.
+    /// </summary>
     public void ToggleHistory()
     {
         if (historyPanel != null)

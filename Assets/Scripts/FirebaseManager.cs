@@ -5,6 +5,11 @@ using Firebase.Database;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
+/// <summary>
+/// Manages Firebase connectivity, including User Authentication (Sign Up/Login) 
+/// and Realtime Database operations for tracking user progress and completed dishes.
+/// Implements the Singleton pattern to persist across scenes.
+/// </summary>
 public class FirebaseManager : MonoBehaviour
 {
     public static FirebaseManager Instance { get; private set; }
@@ -22,19 +27,27 @@ public class FirebaseManager : MonoBehaviour
     private const int TotalDishes = 3;
     private Dictionary<string, bool> completedScenes = new Dictionary<string, bool>();
 
+    /// <summary>
+    /// Enforces the Singleton pattern to ensure only one instance of the manager exists 
+    /// and persists across scene loads.
+    /// </summary>
     private void Awake()
+    {
+        // STRICT CHECK: If a manager already exists, kill THIS new one immediately.
+        if (Instance != null && Instance != this)
         {
-            // STRICT CHECK: If a manager already exists, kill THIS new one immediately.
-            if (Instance != null && Instance != this)
-            {
-                Destroy(gameObject); // Kill the imposter
-                return; // Stop running any more code
-            }
-
-            // If I am the first one, I am the King.
-            Instance = this;
-            DontDestroyOnLoad(gameObject);
+            Destroy(gameObject); // Kill the imposter
+            return; // Stop running any more code
         }
+
+        // If I am the first one, I am the King.
+        Instance = this;
+        DontDestroyOnLoad(gameObject);
+    }
+
+    /// <summary>
+    /// Initiates the Firebase dependency check and attempts to auto-login if a user session persists.
+    /// </summary>
     private async void Start()
     {
         await InitializeFirebase();
@@ -47,6 +60,10 @@ public class FirebaseManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Checks for necessary Firebase dependencies on the device and initializes 
+    /// the Auth and Database references.
+    /// </summary>
     private async Task InitializeFirebase()
     {
         var status = await FirebaseApp.CheckAndFixDependenciesAsync();
@@ -64,10 +81,11 @@ public class FirebaseManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Signs up a new user with email and password.
+    /// Signs up a new user with email and password, enforces password length validation, 
+    /// and initializes their user data in the database.
     /// </summary>
     public async Task<string> SignUpAsync(string email, string password)
-    {   
+    {
         // 1. Pre-check: Is Firebase ready?
         if (!isFirebaseReady) return "Firebase is not ready.";
 
@@ -93,17 +111,22 @@ public class FirebaseManager : MonoBehaviour
             await dbRef.Child("users").Child(user.UserId).UpdateChildrenAsync(userDict);
 
             CurrentProgress = 0;
-            
+
             // 3. Return an empty string to indicate SUCCESS
-            return ""; 
+            return "";
         }
         catch (FirebaseException e)
         {
             // 4. If Firebase fails (e.g., "Email already in use"), return that specific message
             Debug.LogError($"Signup failed: {e.Message}");
-            return e.Message; 
+            return e.Message;
         }
     }
+
+    /// <summary>
+    /// Authenticates an existing user, updates their last login timestamp, 
+    /// and retrieves their saved progress.
+    /// </summary>
     // --- UPDATED: Keeps 'lastLogin' update ---
     public async Task<bool> LoginAsync(string email, string password)
     {
@@ -130,6 +153,9 @@ public class FirebaseManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Signs the current user out of Firebase, clears local progress data, and notifies listeners.
+    /// </summary>
     public void Logout()
     {
         auth?.SignOut();
@@ -139,6 +165,10 @@ public class FirebaseManager : MonoBehaviour
         OnUserLoggedOut?.Invoke();
     }
 
+    /// <summary>
+    /// Marks a specific scene (dish) as completed, saves the completion data (including time taken) 
+    /// to the database, and updates local progress.
+    /// </summary>
     public async void MarkDishComplete(string sceneName, float timeTaken = 0f)
     {
         if (user == null) return;
@@ -155,6 +185,9 @@ public class FirebaseManager : MonoBehaviour
             Debug.Log("ALL DISHES COMPLETED!");
     }
 
+    /// <summary>
+    /// Internal helper task to write the completion data of a specific scene to the Firebase Realtime Database.
+    /// </summary>
     private async Task SaveProgressToFirebase(string sceneName, float timeTaken)
     {
         if (user == null) return;
@@ -183,6 +216,10 @@ public class FirebaseManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Retrieves the current user's progress from the database, handling both legacy (boolean) 
+    /// and new (object) data structures for completed scenes.
+    /// </summary>
     public async Task FetchUserProgress()
     {
         if (user == null) return;
@@ -200,7 +237,7 @@ public class FirebaseManager : MonoBehaviour
                 foreach (var childSnapshot in snapshot.Children)
                 {
                     string key = childSnapshot.Key;
-                    
+
                     // Ignore metadata keys
                     if (key != "progress" && key != "email" && key != "createdAt" && key != "lastLogin")
                     {
@@ -228,30 +265,45 @@ public class FirebaseManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Checks if a specific scene has already been marked as completed in the local dictionary.
+    /// </summary>
     public bool IsSceneCompleted(string sceneName)
     {
         return completedScenes.ContainsKey(sceneName) && completedScenes[sceneName];
     }
 
+    /// <summary>
+    /// Returns a formatted string representing current progress (e.g., "1/3").
+    /// </summary>
     public string GetProgressString()
     {
         return $"{CurrentProgress}/{TotalDishes}";
     }
 
+    /// <summary>
+    /// Checks if there is currently an authenticated user.
+    /// </summary>
     public bool IsUserLoggedIn()
     {
         return user != null;
     }
 
+    /// <summary>
+    /// Retrieves the email address of the current user, or a default string if not logged in.
+    /// </summary>
     public string GetUserEmail()
     {
         return user?.Email ?? "Not logged in";
     }
 
+    /// <summary>
+    /// Manually updates the total progress count in the database and locally.
+    /// </summary>
     public async void UpdateUserProgress(int newProgress)
     {
         CurrentProgress = newProgress;
-        
+
         OnProgressUpdated?.Invoke(CurrentProgress, TotalDishes);
 
         if (user != null && dbRef != null)

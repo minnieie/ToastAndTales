@@ -1,5 +1,9 @@
 using UnityEngine;
 
+/// <summary>
+/// Manages all audio playback for the game, including Background Music (BGM) and Sound Effects (SFX).
+/// Implements the Singleton pattern to persist across scenes.
+/// </summary>
 public class AudioManager : MonoBehaviour
 {
     public static AudioManager Instance;
@@ -27,6 +31,9 @@ public class AudioManager : MonoBehaviour
     [Range(0f, 1f)]
     public float coffeePourVolume = 0.6f; // New slider for coffee!
 
+    /// <summary>
+    /// Initializes the singleton instance and ensures the background music starts automatically.
+    /// </summary>
     private void Awake()
     {
         if (Instance != null && Instance != this)
@@ -47,33 +54,53 @@ public class AudioManager : MonoBehaviour
 
     // --- Specific Play Methods ---
 
+    /// <summary>
+    /// Plays the coffee pouring sound effect using the custom volume setting.
+    /// </summary>
     public void PlayCoffeePour()
     {
         // Now uses the custom volume slider
         PlaySFX(coffeePourClip, coffeePourVolume); 
     }
 
+    /// <summary>
+    /// Plays the sound effect for swapping items on the tray.
+    /// </summary>
     public void PlayTraySwap()
     {
         PlaySFX(traySwapClip, traySwapVolume);
     }
 
+    /// <summary>
+    /// Plays the sound effect for spreading topping on toast.
+    /// </summary>
     public void PlayToastSpread()
     {
         // Assuming toast is fine at default 1.0, otherwise we can add a slider for this too
         PlaySFX(toastSpreadClip); 
     }
 
+    /// <summary>
+    /// Plays the victory sound effect (e.g., upon completing a level).
+    /// </summary>
     public void PlayVictorySound()
     {
         PlaySFX(victoryClip, victoryVolume);
     }
 
+    /// <summary>
+    /// Plays the UI button click sound.
+    /// </summary>
     public void PlayButtonClick()
     {
         PlaySFX(buttonClickClip, buttonClickVolume);
     }
 
+    /// <summary>
+    /// Internal helper method to play a specific audio clip once through the SFX AudioSource.
+    /// </summary>
+    /// <param name="clip">The AudioClip to play.</param>
+    /// <param name="volume">The volume scale (0.0 to 1.0).</param>
     // Helper method to actually play the sound
     // 'volume = 1.0f' makes the volume optional. It defaults to full volume if not specified.
     private void PlaySFX(AudioClip clip, float volume = 1.0f)

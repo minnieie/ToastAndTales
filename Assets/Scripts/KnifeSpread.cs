@@ -1,5 +1,9 @@
 using UnityEngine;
 
+/// <summary>
+/// Controls the visual behavior of the knife during the spreading interaction, 
+/// handling smooth rotation and UI instruction visibility.
+/// </summary>
 public class KnifeSpread : MonoBehaviour
 {
     [Header("Visuals")]
@@ -16,6 +20,9 @@ public class KnifeSpread : MonoBehaviour
     private Quaternion originalRot;
     private Quaternion targetRot;
 
+    /// <summary>
+    /// Initializes the knife's state by storing the starting rotation and ensuring instructions are visible.
+    /// </summary>
     void Start()
     {
         originalRot = knifeBody.localRotation;
@@ -26,6 +33,9 @@ public class KnifeSpread : MonoBehaviour
             popupCanvas.SetActive(true);
     }
 
+    /// <summary>
+    /// Begins the spreading animation by setting the target rotation and hiding instructions.
+    /// </summary>
     public void StartSpreading()
     {
         isSpreading = true;
@@ -38,18 +48,27 @@ public class KnifeSpread : MonoBehaviour
             popupCanvas.SetActive(false);
     }
 
+    /// <summary>
+    /// Stops the spreading animation and targets the original resting rotation.
+    /// </summary>
     public void StopSpreading()
     {
         isSpreading = false;
         targetRot = originalRot; // rotate back smoothly
     }
 
+    /// <summary>
+    /// Smoothly interpolates the knife's rotation towards the current target rotation every frame.
+    /// </summary>
     void Update()
     {
         // Smoothly rotate knife towards target rotation
         knifeBody.localRotation = Quaternion.Lerp(knifeBody.localRotation, targetRot, Time.deltaTime * rotateSpeed);
     }
 
+    /// <summary>
+    /// Resets the knife's rotation and state to the default starting conditions.
+    /// </summary>
     // Optional: reset knife to original rotation
     public void ResetKnife()
     {
